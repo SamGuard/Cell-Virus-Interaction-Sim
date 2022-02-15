@@ -19,16 +19,20 @@
 
 class Model {
    public:
+    Model(std::string propsFile, int argc, char** argv,
+          boost::mpi::communicator* comm);
+
     unsigned int lifetime;
+    const int countOfAgents = 5;
     std::string propsFile;
     repast::Properties* props;
 
     AgentPackageProvider* provider;
     AgentPackageReceiver* receiver;
 
-    repast::SharedDiscreteSpace<Agent, repast::WrapAroundBorders,
+    repast::SharedDiscreteSpace<Agent, repast::StrictBorders,
                                 repast::SimpleAdder<Agent> >* discreteSpace;
-    repast::SharedContinuousSpace<Agent, repast::WrapAroundBorders,
+    repast::SharedContinuousSpace<Agent, repast::StrictBorders,
                                   repast::SimpleAdder<Agent> >* continSpace;
 
     repast::SharedContext<Agent> context;
@@ -36,7 +40,7 @@ class Model {
     void init();
     void initSchedule(repast::ScheduleRunner& runner);
 
-    Model(std::string propsFile, int argc, char** argv,
-          boost::mpi::communicator* comm);
+    void move();
+    void interact();
 };
 #endif

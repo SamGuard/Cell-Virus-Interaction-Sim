@@ -16,5 +16,8 @@ int main(int argc, char** argv){
 	model.init();
 	model.initSchedule(runner);
 
-  
+	runner.run();  
+
+
+	repast::RepastProcess::instance()->done();
 }

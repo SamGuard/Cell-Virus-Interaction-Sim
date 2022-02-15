@@ -3,13 +3,12 @@
 
 #include <stdlib.h>
 
+#include "constants.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
-
-#include "constants.hpp"
 
 class Agent {
     Vector vel;
@@ -17,27 +16,27 @@ class Agent {
     unsigned int testCounter;
 
    public:
-    Agent(){
-      vel.x = 0;
-      vel.y = 0;
+    Agent() {
+        vel.x = 0;
+        vel.y = 0;
     }
 
     // Getters for the serialisation
-    virtual repast::AgentId& getId(){                   return id;    }
-    virtual const repast::AgentId& getId() const {      return id;    }
+    virtual repast::AgentId& getId() { return id; }
+    virtual const repast::AgentId& getId() const { return id; }
 
     // Getter for agent specific attributes
-    Vector getVel(){ return vel; }
+    Vector getVel() { return vel; }
 
-    Agent(repast::AgentId id, Vector vel){
-      this->id = id;
-      this->vel = vel;
-      testCounter = 0;
+    Agent(repast::AgentId id, Vector vel) {
+        this->id = id;
+        this->vel = vel;
+        testCounter = 1;
     }
 
-    void set(repast::AgentId id, Vector vel){
-      this->id = id;
-      this->vel = vel;
+    void set(repast::AgentId id, Vector vel) {
+        this->id = id;
+        this->vel = vel;
     }
     // This is where interactions that change the state of agents take place
     void interact(
@@ -46,7 +45,7 @@ class Agent {
                                     repast::SimpleAdder<Agent>>* discreteSpace,
         repast::SharedContinuousSpace<Agent, repast::StrictBorders,
                                       repast::SimpleAdder<Agent>>* continSpace);
-    // Moves the agent                                      
+    // Moves the agent
     void move(
         repast::SharedDiscreteSpace<Agent, repast::StrictBorders,
                                     repast::SimpleAdder<Agent>>* discreteSpace,
@@ -56,26 +55,26 @@ class Agent {
 
 /* Serializable Agent Package */
 struct AgentPackage {
-	
-public:
-    int    id;
-    int    rank;
-    int    type;
-    int    currentRank;
-	
+   public:
+    int id;
+    int rank;
+    int type;
+    int currentRank;
+    Vector vel;
+
     /* Constructors */
-    AgentPackage(); // For serialization
-    AgentPackage(int _id, int _rank, int _type, int _currentRank);
-	
+    AgentPackage();  // For serialization
+    AgentPackage(int _id, int _rank, int _type, int _currentRank, Vector vel);
+
     /* For archive packaging */
-    template<class Archive>
-    void serialize(Archive &ar, const unsigned int version){
-        ar & id;
-        ar & rank;
-        ar & type;
-        ar & currentRank;
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+        ar& id;
+        ar& rank;
+        ar& type;
+        ar& currentRank;
+        ar& vel;
     }
-	
 };
 
 #endif
