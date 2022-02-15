@@ -38,3 +38,13 @@ void Agent::move(
     discLoc.push_back((int)loc[1]);
     discreteSpace->moveTo(id, discLoc);
 }
+
+/* Serializable Agent Package Data */
+
+AgentPackage::AgentPackage() {}
+
+AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank)
+    : id(_id),
+      rank(_rank),
+      type(_type),
+      currentRank(_currentRank){}

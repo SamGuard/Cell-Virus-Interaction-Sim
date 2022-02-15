@@ -10,9 +10,11 @@ int main(int argc, char** argv){
 
 	repast::RepastProcess::init(configFile);
 
-	Model model = Model();
-	model.init(propsFile, argc, argv, &world);
-	model.initSchedule();
+	Model model = Model(propsFile, argc, argv, &world);
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+
+	model.init();
+	model.initSchedule(runner);
 
   
 }

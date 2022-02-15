@@ -54,4 +54,28 @@ class Agent {
                                       repast::SimpleAdder<Agent>>* continSpace);
 };
 
+/* Serializable Agent Package */
+struct AgentPackage {
+	
+public:
+    int    id;
+    int    rank;
+    int    type;
+    int    currentRank;
+	
+    /* Constructors */
+    AgentPackage(); // For serialization
+    AgentPackage(int _id, int _rank, int _type, int _currentRank);
+	
+    /* For archive packaging */
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version){
+        ar & id;
+        ar & rank;
+        ar & type;
+        ar & currentRank;
+    }
+	
+};
+
 #endif

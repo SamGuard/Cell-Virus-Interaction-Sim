@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "agent.hpp"
+#include "communicators.hpp"
 #include "repast_hpc/AgentRequest.h"
 #include "repast_hpc/GridComponents.h"
 #include "repast_hpc/Properties.h"
@@ -22,6 +23,9 @@ class Model {
     std::string propsFile;
     repast::Properties* props;
 
+    AgentPackageProvider* provider;
+    AgentPackageReceiver* receiver;
+
     repast::SharedDiscreteSpace<Agent, repast::WrapAroundBorders,
                                 repast::SimpleAdder<Agent> >* discreteSpace;
     repast::SharedContinuousSpace<Agent, repast::WrapAroundBorders,
@@ -29,12 +33,10 @@ class Model {
 
     repast::SharedContext<Agent> context;
 
-    void init(std::string propsFile, int argc, char** argv,
-              boost::mpi::communicator* comm);
-    void initSchedule();
-    Model() { 
-      std::cout << "Model Created:)" << std::endl; 
+    void init();
+    void initSchedule(repast::ScheduleRunner& runner);
 
-      }
+    Model(std::string propsFile, int argc, char** argv,
+          boost::mpi::communicator* comm);
 };
 #endif
