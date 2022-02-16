@@ -17,13 +17,13 @@
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm)
     : context(comm) {
-    std::cout << "Model created" << std::endl;
     props = new repast::Properties(propsFile, argc, argv, comm);
     initializeRandom(*props, comm);
     provider = new AgentPackageProvider(&context);
     receiver = new AgentPackageReceiver(&context);
 
     lifetime = stoi(props->getProperty("lifetime"));
+    countOfAgents = stoi(props->getProperty("agentCount"));
     cout << lifetime << std::endl;
 
     repast::Point<double> origin(-100, -100);
@@ -51,9 +51,10 @@ Model::Model(std::string propsFile, int argc, char** argv,
 void Model::init() {
     int rank = repast::RepastProcess::instance()->rank();
     repast::Random* randNum = repast::Random::instance();
+    double spawnSize = 100.0;
     for (int i = 0; i < countOfAgents; i++) {
-        double offsetX = randNum->nextDouble() * 10.0 - 5.0,
-               offsetY = randNum->nextDouble() * 10.0 - 5.0;
+        double offsetX = randNum->nextDouble() * spawnSize - spawnSize / 2,
+               offsetY = randNum->nextDouble() * spawnSize - spawnSize / 2;
         repast::Point<int> initialLocationDiscrete((int)offsetX, (int)offsetY);
         repast::Point<double> initialLocationContinuous(offsetX, offsetY);
         repast::AgentId id(i, rank, 0);

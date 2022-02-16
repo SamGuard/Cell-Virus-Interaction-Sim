@@ -23,7 +23,7 @@ class Model {
           boost::mpi::communicator* comm);
 
     unsigned int lifetime;
-    const int countOfAgents = 5;
+    int countOfAgents;
     std::string propsFile;
     repast::Properties* props;
 
