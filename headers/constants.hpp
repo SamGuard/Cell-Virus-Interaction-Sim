@@ -2,7 +2,7 @@
 #define CONSTANTS
 
 struct Vector{
-  float x, y;
+  double x, y;
 };
 
 #endif

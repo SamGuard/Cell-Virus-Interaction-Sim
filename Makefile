@@ -1,9 +1,9 @@
 include ./env
 
-./objects/agent.o: 
+./objects/agent.o: ./source/agent.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/agent.cpp -o ./objects/agent.o -Wall
 
-./objects/communicators.o: ./headers/agent.hpp
+./objects/communicators.o: ./headers/agent.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o -Wall
 
 ./objects/model.o: ./headers/model.hpp ./headers/communicators.hpp ./source/model.cpp

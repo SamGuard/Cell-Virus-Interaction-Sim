@@ -15,11 +15,12 @@ void Agent::interact(
     discreteSpace->getLocation(id, agentLocDiscrete);
     repast::Point<int> center(agentLocDiscrete);
     repast::Moore2DGridQuery<Agent> moore2DQuery(discreteSpace);
-    moore2DQuery.query(center, 3, false, agentsToPlay);
+    moore2DQuery.query(center, 1, false, agentsToPlay);
 
     std::vector<Agent*>::iterator agentToPlay = agentsToPlay.begin();
     while (agentToPlay != agentsToPlay.end()) {
         std::cout << "Hi from " << id.id() << " Agent " << (*agentToPlay)->id.id() << std::endl;
+        (*agentToPlay)->increment();
         agentToPlay++;
 
     }
@@ -45,9 +46,11 @@ void Agent::move(
 
 AgentPackage::AgentPackage() {}
 
-AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, Vector _vel)
+AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank, double _velx, double _vely, int _testCounter)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
-      vel(_vel){}
+      testCounter(_testCounter),
+      velx(_velx),
+      vely(_vely){}

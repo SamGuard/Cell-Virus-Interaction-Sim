@@ -42,5 +42,6 @@ class Model {
 
     void move();
     void interact();
+    void printAgentCounters();
 };
 #endif

@@ -61,7 +61,7 @@ void Model::init() {
         Vector vel;
         vel.x = randNum->nextDouble();
         vel.y = randNum->nextDouble();
-        Agent* agent = new Agent(id, vel);
+        Agent* agent = new Agent(id, vel, 0);
         context.addAgent(agent);
         discreteSpace->moveTo(id, initialLocationDiscrete);
         continSpace->moveTo(id, initialLocationContinuous);
@@ -69,18 +69,18 @@ void Model::init() {
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
-    /*
     runner.scheduleEvent(
-        1, 1,
+        2, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::move)));
 
-    */
     runner.scheduleEvent(
         1, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::interact)));
 
+    runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
+        new repast::MethodFunctor<Model>(this, &Model::printAgentCounters)));
     runner.scheduleStop(lifetime);
 }
 
@@ -108,5 +108,22 @@ void Model::interact() {
         (*it)->interact(&context, discreteSpace, continSpace);
         it++;
     }
-    
+}
+
+void Model::printAgentCounters() {
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStates<AgentPackage, AgentPackageProvider,
+                                 AgentPackageReceiver>(*provider, *receiver);
+    if (repast::RepastProcess::instance()->rank() != 0) {
+        return;
+    }
+    std::vector<Agent*> agents;
+    context.selectAgents(countOfAgents, agents);
+
+    std::vector<Agent*>::iterator it = agents.begin();
+    while (it != agents.end()) {
+        std::cout << "Agent " << (*it)->getId() << " Value "
+                  << (*it)->testCounter << std::endl;
+        it++;
+    }
 }

@@ -13,9 +13,10 @@
 class Agent {
     Vector vel;
     repast::AgentId id;
-    unsigned int testCounter;
 
    public:
+    unsigned int testCounter;
+
     Agent() {
         vel.x = 0;
         vel.y = 0;
@@ -27,16 +28,18 @@ class Agent {
 
     // Getter for agent specific attributes
     Vector getVel() { return vel; }
+    int getTestCounter() { return testCounter; }
 
-    Agent(repast::AgentId id, Vector vel) {
+    Agent(repast::AgentId id, Vector vel, int testCounter) {
         this->id = id;
         this->vel = vel;
-        testCounter = 1;
+        this->testCounter = testCounter;
     }
 
-    void set(repast::AgentId id, Vector vel) {
+    void set(repast::AgentId id, Vector vel, int testCounter) {
         this->id = id;
         this->vel = vel;
+        this->testCounter = testCounter;
     }
     // This is where interactions that change the state of agents take place
     void interact(
@@ -51,20 +54,20 @@ class Agent {
                                     repast::SimpleAdder<Agent>>* discreteSpace,
         repast::SharedContinuousSpace<Agent, repast::StrictBorders,
                                       repast::SimpleAdder<Agent>>* continSpace);
+
+    void increment() { testCounter++; }
 };
 
 /* Serializable Agent Package */
 struct AgentPackage {
    public:
-    int id;
-    int rank;
-    int type;
-    int currentRank;
-    Vector vel;
+    int id, rank, type, currentRank, testCounter;
+    double velx, vely;
 
     /* Constructors */
     AgentPackage();  // For serialization
-    AgentPackage(int _id, int _rank, int _type, int _currentRank, Vector vel);
+    AgentPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
+                 double _vely, int _testCounter);
 
     /* For archive packaging */
     template <class Archive>
@@ -73,7 +76,9 @@ struct AgentPackage {
         ar& rank;
         ar& type;
         ar& currentRank;
-        ar& vel;
+        ar& velx;
+        ar& vely;
+        ar& testCounter;
     }
 };
 
