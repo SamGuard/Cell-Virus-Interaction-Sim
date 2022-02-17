@@ -10,14 +10,14 @@
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
 
-class Agent {
+class Virus {
     Vector vel;
     repast::AgentId id;
 
    public:
     unsigned int testCounter;
 
-    Agent() {
+    Virus() {
         vel.x = 0;
         vel.y = 0;
     }
@@ -30,7 +30,7 @@ class Agent {
     Vector getVel() { return vel; }
     int getTestCounter() { return testCounter; }
 
-    Agent(repast::AgentId id, Vector vel, int testCounter) {
+    Virus(repast::AgentId id, Vector vel, int testCounter) {
         this->id = id;
         this->vel = vel;
         this->testCounter = testCounter;
@@ -43,17 +43,17 @@ class Agent {
     }
     // This is where interactions that change the state of agents take place
     void interact(
-        repast::SharedContext<Agent>* context,
-        repast::SharedDiscreteSpace<Agent, repast::StrictBorders,
-                                    repast::SimpleAdder<Agent>>* discreteSpace,
-        repast::SharedContinuousSpace<Agent, repast::StrictBorders,
-                                      repast::SimpleAdder<Agent>>* continSpace);
+        repast::SharedContext<Virus>* context,
+        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                    repast::SimpleAdder<Virus>>* virusDiscreteSpace,
+        repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                      repast::SimpleAdder<Virus>>* virusContinSpace);
     // Moves the agent
     void move(
-        repast::SharedDiscreteSpace<Agent, repast::StrictBorders,
-                                    repast::SimpleAdder<Agent>>* discreteSpace,
-        repast::SharedContinuousSpace<Agent, repast::StrictBorders,
-                                      repast::SimpleAdder<Agent>>* continSpace);
+        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                    repast::SimpleAdder<Virus>>* virusDiscreteSpace,
+        repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                      repast::SimpleAdder<Virus>>* virusContinSpace);
 
     void increment() { testCounter++; }
 };

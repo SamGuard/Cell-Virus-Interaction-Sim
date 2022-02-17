@@ -27,15 +27,15 @@ class Model {
     std::string propsFile;
     repast::Properties* props;
 
-    AgentPackageProvider* provider;
-    AgentPackageReceiver* receiver;
-
-    repast::SharedDiscreteSpace<Agent, repast::StrictBorders,
-                                repast::SimpleAdder<Agent> >* discreteSpace;
-    repast::SharedContinuousSpace<Agent, repast::StrictBorders,
-                                  repast::SimpleAdder<Agent> >* continSpace;
-
-    repast::SharedContext<Agent> context;
+    // Agent stuff
+    VirusPackageProvider* virusProvider;
+    VirusPackageReceiver* virusReceiver;
+    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                repast::SimpleAdder<Virus> >* virusDiscreteSpace;
+    repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                  repast::SimpleAdder<Virus> >* virusContinSpace;
+    repast::SharedContext<Virus> context;
+    // ------------------------------------------------
 
     void init();
     void initSchedule(repast::ScheduleRunner& runner);

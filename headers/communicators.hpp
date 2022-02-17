@@ -1,31 +1,28 @@
 #include "agent.hpp"
 
 /* Agent Package Provider */
-class AgentPackageProvider {
+class VirusPackageProvider {
    private:
-    repast::SharedContext<Agent>* agents;
+    repast::SharedContext<Virus>* agents;
 
    public:
-    AgentPackageProvider(
-        repast::SharedContext<Agent>* agentPtr);
+    VirusPackageProvider(repast::SharedContext<Virus>* agentPtr);
 
-    void providePackage(Agent* agent,
-                        std::vector<AgentPackage>& out);
+    void providePackage(Virus* agent, std::vector<AgentPackage>& out);
 
     void provideContent(repast::AgentRequest req,
                         std::vector<AgentPackage>& out);
 };
 
 /* Agent Package Receiver */
-class AgentPackageReceiver {
+class VirusPackageReceiver {
    private:
-    repast::SharedContext<Agent>* agents;
+    repast::SharedContext<Virus>* agents;
 
    public:
-    AgentPackageReceiver(
-        repast::SharedContext<Agent>* agentPtr);
+    VirusPackageReceiver(repast::SharedContext<Virus>* agentPtr);
 
-    Agent* createAgent(AgentPackage package);
+    Virus* createAgent(AgentPackage package);
 
     void updateAgent(AgentPackage package);
 };
