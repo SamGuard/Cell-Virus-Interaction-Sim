@@ -63,8 +63,8 @@ void Model::init() {
         repast::AgentId id(i, rank, 0);
         id.currentRank(rank);
         Vector vel;
-        vel.x = randNum->nextDouble();
-        vel.y = randNum->nextDouble();
+        vel.x = randNum->nextDouble() - 0.5;
+        vel.y = randNum->nextDouble() - 0.5;
         Virus* agent = new Virus(id, vel, 0);
         context.addAgent(agent);
         virusDiscreteSpace->moveTo(id, initialLocationDiscrete);
@@ -75,11 +75,11 @@ void Model::init() {
 
         // Loging Agent positions
         this->builder->addDataSource(createSVDataSource(
-            dataXString, new DataSource_VirusPos(&context, id, true),
+            dataXString, new DataSource_VirusPos(virusContinSpace, id, true),
             std::plus<double>()));
 
         this->builder->addDataSource(createSVDataSource(
-            dataYString, new DataSource_VirusPos(&context, id, false),
+            dataYString, new DataSource_VirusPos(virusContinSpace, id, false),
             std::plus<double>()));
     }
 
@@ -102,10 +102,12 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         1, 1,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentsPos, &repast::DataSet::record)));
+    /*
     runner.scheduleEvent(
         1, 1,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentsPos, &repast::DataSet::write)));
+    */
     runner.scheduleEndEvent(
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentsPos, &repast::DataSet::write)));

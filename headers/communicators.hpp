@@ -1,4 +1,5 @@
-#include "agent.hpp"
+#include "virus.hpp"
+#include "repast_hpc/Context.h"
 
 /* Agent Package Provider */
 class VirusPackageProvider {

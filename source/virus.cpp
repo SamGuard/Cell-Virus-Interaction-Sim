@@ -1,4 +1,4 @@
-#include "agent.hpp"
+#include "virus.hpp"
 
 #include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"
@@ -39,22 +39,22 @@ void Virus::move(
     continSpace->getLocation(id, loc);
     loc[0] += vel.x;
     loc[1] += vel.y;
-    
-    std::vector<int> discLoc;
-    discLoc.push_back((int)loc[0]);
-    discLoc.push_back((int)loc[1]);
 
     repast::Point<double> origin = continSpace->bounds().origin();
     repast::Point<double> extent = continSpace->bounds().extents();
 
-    if(loc[0] <= extent.getX() || loc[0] >= extent.getX() + origin.getX()){
+    if(loc[0] <= origin.getX() || loc[0] >= extent.getX() + origin.getX()){
         vel.x = -vel.x;
         loc[0] += vel.x;
     }
-    if(loc[1] <= extent.getY() || loc[1] >= extent.getY() + origin.getY()){
+    if(loc[1] <= origin.getY() || loc[1] >= extent.getY() + origin.getY()){
         vel.y = -vel.y;
         loc[1] += vel.y;
     }
+
+    std::vector<int> discLoc;
+    discLoc.push_back((int)loc[0]);
+    discLoc.push_back((int)loc[1]);
 
     continSpace->moveTo(id, loc);
     discreteSpace->moveTo(id, discLoc);

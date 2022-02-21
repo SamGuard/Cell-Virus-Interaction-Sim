@@ -6,7 +6,7 @@
 #include <boost/mpi.hpp>
 #include <iostream>
 
-#include "agent.hpp"
+#include "virus.hpp"
 #include "communicators.hpp"
 #include "data_collectors.hpp"
 #include "repast_hpc/AgentRequest.h"
