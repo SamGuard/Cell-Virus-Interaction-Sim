@@ -5,20 +5,11 @@
 #include <boost/mpi.hpp>
 #include <vector>
 
-#include "repast_hpc/AgentId.h"
-#include "repast_hpc/Point.h"
-#include "repast_hpc/Properties.h"
-#include "repast_hpc/Random.h"
-#include "repast_hpc/RepastProcess.h"
-#include "repast_hpc/SVDataSetBuilder.h"
-#include "repast_hpc/Utilities.h"
-#include "repast_hpc/initialize_random.h"
-
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm)
     : context(comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
-    initializeRandom(*props, comm);
+
     virusProvider = new VirusPackageProvider(&context);
     virusReceiver = new VirusPackageReceiver(&context);
 
@@ -47,12 +38,23 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     context.addProjection(virusContinSpace);
     context.addProjection(virusDiscreteSpace);
+
+    // Data collection
+    // Create the data set builder
+    std::string fileOutputName("./output/agent_pos_data.csv");
+    builder = new repast::SVDataSetBuilder(
+        fileOutputName.c_str(), ",",
+        repast::RepastProcess::instance()->getScheduleRunner().schedule());
 }
 
 void Model::init() {
     int rank = repast::RepastProcess::instance()->rank();
     repast::Random* randNum = repast::Random::instance();
     double spawnSize = 100.0;
+
+    char* dataXString = (char*)malloc(128 * sizeof(char));
+    char* dataYString = (char*)malloc(128 * sizeof(char));
+
     for (int i = 0; i < countOfAgents; i++) {
         double offsetX = randNum->nextDouble() * spawnSize - spawnSize / 2,
                offsetY = randNum->nextDouble() * spawnSize - spawnSize / 2;
@@ -67,7 +69,22 @@ void Model::init() {
         context.addAgent(agent);
         virusDiscreteSpace->moveTo(id, initialLocationDiscrete);
         virusContinSpace->moveTo(id, initialLocationContinuous);
+
+        sprintf(dataXString, "agent_x_%d", i);
+        sprintf(dataYString, "agent_y_%d", i);
+
+        // Loging Agent positions
+        this->builder->addDataSource(createSVDataSource(
+            dataXString, new DataSource_VirusPos(&context, id, true),
+            std::plus<double>()));
+
+        this->builder->addDataSource(createSVDataSource(
+            dataYString, new DataSource_VirusPos(&context, id, false),
+            std::plus<double>()));
     }
+
+    // Use the builder to create the data set
+    agentsPos = builder->createDataSet();
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
@@ -81,8 +98,22 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::interact)));
 
+    runner.scheduleEvent(
+        1, 1,
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
+            agentsPos, &repast::DataSet::record)));
+    runner.scheduleEvent(
+        1, 1,
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
+            agentsPos, &repast::DataSet::write)));
+    runner.scheduleEndEvent(
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
+            agentsPos, &repast::DataSet::write)));
+
+    // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
         new repast::MethodFunctor<Model>(this, &Model::printAgentCounters)));
+
     runner.scheduleStop(lifetime);
 }
 
@@ -115,7 +146,8 @@ void Model::interact() {
 void Model::printAgentCounters() {
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<AgentPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*virusProvider, *virusReceiver);
+                                 VirusPackageReceiver>(*virusProvider,
+                                                       *virusReceiver);
     if (repast::RepastProcess::instance()->rank() != 0) {
         return;
     }
