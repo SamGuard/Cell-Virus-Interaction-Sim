@@ -27,3 +27,6 @@ clean: del_data
 
 run: del_data
 	mpirun -n 4 ./bin/main config.props model.props
+
+debug: del_data
+	mpirun --debug -n 4 ./bin/main config.props model.props

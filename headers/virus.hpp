@@ -59,14 +59,14 @@ class Virus {
 };
 
 /* Serializable Agent Package */
-struct AgentPackage {
+struct VirusPackage {
    public:
     int id, rank, type, currentRank, testCounter;
     double velx, vely;
 
     /* Constructors */
-    AgentPackage();  // For serialization
-    AgentPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
+    VirusPackage();  // For serialization
+    VirusPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
                  double _vely, int _testCounter);
 
     /* For archive packaging */

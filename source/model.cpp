@@ -1,9 +1,11 @@
 #include "model.hpp"
 
 #include <stdio.h>
-
+#include <ctime>
 #include <boost/mpi.hpp>
 #include <vector>
+
+#define RANK 1
 
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm)
@@ -50,10 +52,12 @@ Model::Model(std::string propsFile, int argc, char** argv,
 void Model::init() {
     int rank = repast::RepastProcess::instance()->rank();
     repast::Random* randNum = repast::Random::instance();
+    randNum->initialize(std::time(NULL));
     double spawnSize = 100.0;
 
     char* dataXString = (char*)malloc(128 * sizeof(char));
     char* dataYString = (char*)malloc(128 * sizeof(char));
+
 
     for (int i = 0; i < countOfAgents; i++) {
         double offsetX = randNum->nextDouble() * spawnSize - spawnSize / 2,
@@ -62,6 +66,7 @@ void Model::init() {
         repast::Point<double> initialLocationContinuous(offsetX, offsetY);
         repast::AgentId id(i, rank, 0);
         id.currentRank(rank);
+
         Vector vel;
         vel.x = randNum->nextDouble() - 0.5;
         vel.y = randNum->nextDouble() - 0.5;
@@ -75,11 +80,11 @@ void Model::init() {
 
         // Loging Agent positions
         this->builder->addDataSource(createSVDataSource(
-            dataXString, new DataSource_VirusPos(virusContinSpace, id, true),
+            dataXString, new DataSource_VirusPos(virusContinSpace, id.id(), rank, true),
             std::plus<double>()));
 
         this->builder->addDataSource(createSVDataSource(
-            dataYString, new DataSource_VirusPos(virusContinSpace, id, false),
+            dataYString, new DataSource_VirusPos(virusContinSpace, id.id(), rank, false),
             std::plus<double>()));
     }
 
@@ -97,7 +102,8 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         1, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::interact)));
-
+    
+    
     runner.scheduleEvent(
         1, 1,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
@@ -131,12 +137,34 @@ void Model::move() {
         (*it)->move(virusDiscreteSpace, virusContinSpace);
         it++;
     }
+    
+    virusDiscreteSpace->balance();  
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
+                                 VirusPackageReceiver>(
+            context, *virusProvider, *virusReceiver, *virusReceiver);
+
+    repast::RepastProcess::instance()
+        ->synchronizeProjectionInfo<Virus, VirusPackage, VirusPackageProvider,
+                                    VirusPackageReceiver>(
+            context, *virusProvider, *virusReceiver, *virusReceiver);
+
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
+                                 VirusPackageReceiver>(*virusProvider,
+                                                       *virusReceiver);
+    std::vector<Virus*> test;
+    context.selectAgents(test, false);
+    if(test.size() != 10){
+        cout << "LOST AGENTS " << test.size() << " " << repast::RepastProcess::instance()->rank() << std::endl;
+    }                                                       
 }
 
 void Model::interact() {
     std::vector<Virus*> agents;
     context.selectAgents(repast::SharedContext<Virus>::LOCAL, countOfAgents,
                          agents);
+
 
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
@@ -147,7 +175,7 @@ void Model::interact() {
 
 void Model::printAgentCounters() {
     repast::RepastProcess::instance()
-        ->synchronizeAgentStates<AgentPackage, VirusPackageProvider,
+        ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(*virusProvider,
                                                        *virusReceiver);
     if (repast::RepastProcess::instance()->rank() != 0) {

@@ -62,9 +62,9 @@ void Virus::move(
 
 /* Serializable Agent Package Data */
 
-AgentPackage::AgentPackage() {}
+VirusPackage::VirusPackage() {}
 
-AgentPackage::AgentPackage(int _id, int _rank, int _type, int _currentRank,
+VirusPackage::VirusPackage(int _id, int _rank, int _type, int _currentRank,
                            double _velx, double _vely, int _testCounter)
     : id(_id),
       rank(_rank),

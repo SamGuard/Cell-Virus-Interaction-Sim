@@ -3,12 +3,18 @@
 DataSource_VirusPos::DataSource_VirusPos(
     repast::SharedContinuousSpace<Virus, repast::StrictBorders,
                                   repast::SimpleAdder<Virus> >* _space,
-    repast::AgentId _id, bool _useX)
-    : space(_space), id(_id), useX(_useX) {}
+    int _id, int _startingProcess, bool _useX)
+    : space(_space), id(_id), startingProcess(_startingProcess), useX(_useX) {}
 
 double DataSource_VirusPos::getData() {
     std::vector<double> loc;
-    space->getLocation(id, loc);
+    repast::AgentId fullID = repast::AgentId(id, startingProcess, 0);
+
+    space->getLocation(fullID, loc);
+    if (loc.size() == 0) {
+        //cout << "ERROR IN AGENT: " << fullID << std::endl;
+        return 0;
+    }
     if (useX) {
         return loc[0];
     }

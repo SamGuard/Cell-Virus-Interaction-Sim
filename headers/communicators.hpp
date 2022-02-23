@@ -9,10 +9,10 @@ class VirusPackageProvider {
    public:
     VirusPackageProvider(repast::SharedContext<Virus>* agentPtr);
 
-    void providePackage(Virus* agent, std::vector<AgentPackage>& out);
+    void providePackage(Virus* agent, std::vector<VirusPackage>& out);
 
     void provideContent(repast::AgentRequest req,
-                        std::vector<AgentPackage>& out);
+                        std::vector<VirusPackage>& out);
 };
 
 /* Agent Package Receiver */
@@ -23,7 +23,7 @@ class VirusPackageReceiver {
    public:
     VirusPackageReceiver(repast::SharedContext<Virus>* agentPtr);
 
-    Virus* createAgent(AgentPackage package);
+    Virus* createAgent(VirusPackage package);
 
-    void updateAgent(AgentPackage package);
+    void updateAgent(VirusPackage package);
 };

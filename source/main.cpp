@@ -19,6 +19,7 @@ int main(int argc, char** argv){
 	std::cout << "Model Starting" << std::endl;
 	runner.run();  
 
+	cout << "Done\n";
 
 	repast::RepastProcess::instance()->done();
 }
