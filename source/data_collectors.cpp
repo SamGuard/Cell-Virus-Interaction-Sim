@@ -11,6 +11,10 @@ double DataSource_VirusPos::getData() {
     repast::AgentId fullID = repast::AgentId(id, startingProcess, 0);
 
     space->getLocation(fullID, loc);
+
+    if(fabs(loc[0]) > 100 || fabs(loc[1]) > 100){
+        cout << "OUT OF BOUNDS " << this->id << std::endl;
+    }
     if (loc.size() == 0) {
         //cout << "ERROR IN AGENT: " << fullID << std::endl;
         return 0;

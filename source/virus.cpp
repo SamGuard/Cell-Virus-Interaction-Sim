@@ -33,8 +33,7 @@ void Virus::move(
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                 repast::SimpleAdder<Virus>>* discreteSpace,
     repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus>>*
-        continSpace) {
+                                  repast::SimpleAdder<Virus>>* continSpace) {
     std::vector<double> loc;
     continSpace->getLocation(id, loc);
     loc[0] += vel.x;
@@ -43,11 +42,11 @@ void Virus::move(
     repast::Point<double> origin = continSpace->bounds().origin();
     repast::Point<double> extent = continSpace->bounds().extents();
 
-    if(loc[0] <= origin.getX() || loc[0] >= extent.getX() + origin.getX()){
+    if (loc[0] <= origin.getX() || loc[0] >= extent.getX() + origin.getX()) {
         vel.x = -vel.x;
         loc[0] += vel.x;
     }
-    if(loc[1] <= origin.getY() || loc[1] >= extent.getY() + origin.getY()){
+    if (loc[1] <= origin.getY() || loc[1] >= extent.getY() + origin.getY()) {
         vel.y = -vel.y;
         loc[1] += vel.y;
     }

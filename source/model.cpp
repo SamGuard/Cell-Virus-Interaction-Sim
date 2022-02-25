@@ -1,8 +1,9 @@
 #include "model.hpp"
 
 #include <stdio.h>
-#include <ctime>
+
 #include <boost/mpi.hpp>
+#include <ctime>
 #include <vector>
 
 #define RANK 1
@@ -17,7 +18,6 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     lifetime = stoi(props->getProperty("lifetime"));
     countOfAgents = stoi(props->getProperty("agentCount"));
-    cout << lifetime << std::endl;
 
     double areaSize = 200.0;
     repast::Point<double> origin(-areaSize / 2.0, -areaSize / 2.0);
@@ -31,33 +31,45 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     virusDiscreteSpace =
         new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                        repast::SimpleAdder<Virus> >(
+                                        repast::SimpleAdder<Virus>>(
             "AgentDiscreteSpace", gd, processDims, 2, comm);
     virusContinSpace =
         new repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                          repast::SimpleAdder<Virus> >(
+                                          repast::SimpleAdder<Virus>>(
             "AgentContinuousSpace", gd, processDims, 0, comm);
 
     context.addProjection(virusContinSpace);
     context.addProjection(virusDiscreteSpace);
-
-    // Data collection
-    // Create the data set builder
-    std::string fileOutputName("./output/agent_pos_data.csv");
-    builder = new repast::SVDataSetBuilder(
-        fileOutputName.c_str(), ",",
-        repast::RepastProcess::instance()->getScheduleRunner().schedule());
 }
 
 void Model::init() {
-    int rank = repast::RepastProcess::instance()->rank();
+    rank = repast::RepastProcess::instance()->rank();
+    worldSize = repast::RepastProcess::instance()->worldSize();
     repast::Random* randNum = repast::Random::instance();
-    randNum->initialize(std::time(NULL));
+    // randNum->initialize(std::time(NULL));
+    randNum->initialize(27);
+
+    // Data collection
+    // file to log agent positions to
+    char* fileOutputName = (char*)malloc(128 * sizeof(char));
+    {
+        char* buff = (char*)malloc(128 * sizeof(char));
+        sprintf(fileOutputName, "output/virus_pos_data_%d.csv", rank);
+        virusPosData.open(fileOutputName, std::ios::out | std::ios::trunc);
+        virusPosData << "tick,";
+        for (int proc = 0; proc < worldSize; proc++) {
+            for (int i = 0; i < countOfAgents; i++) {
+                sprintf(buff, "agent_x_%d_%d,", i, proc);
+                virusPosData << buff;
+                sprintf(buff, "agent_y_%d_%d,", i, proc);
+                virusPosData << buff;
+            }
+        }
+        virusPosData << std::endl;
+        free(buff);
+    }
+
     double spawnSize = 100.0;
-
-    char* dataXString = (char*)malloc(128 * sizeof(char));
-    char* dataYString = (char*)malloc(128 * sizeof(char));
-
 
     for (int i = 0; i < countOfAgents; i++) {
         double offsetX = randNum->nextDouble() * spawnSize - spawnSize / 2,
@@ -74,27 +86,18 @@ void Model::init() {
         context.addAgent(agent);
         virusDiscreteSpace->moveTo(id, initialLocationDiscrete);
         virusContinSpace->moveTo(id, initialLocationContinuous);
-
-        sprintf(dataXString, "agent_x_%d", i);
-        sprintf(dataYString, "agent_y_%d", i);
-
-        // Loging Agent positions
-        this->builder->addDataSource(createSVDataSource(
-            dataXString, new DataSource_VirusPos(virusContinSpace, id.id(), rank, true),
-            std::plus<double>()));
-
-        this->builder->addDataSource(createSVDataSource(
-            dataYString, new DataSource_VirusPos(virusContinSpace, id.id(), rank, false),
-            std::plus<double>()));
     }
 
-    // Use the builder to create the data set
-    agentsPos = builder->createDataSet();
+    std::vector<Virus*> agents;
+
+    // Move randomly places agents into the correct processes
+    balanceAgents();
+    cout << "Rank " << rank << " " << "size " << context.size() << std::endl;
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
     runner.scheduleEvent(
-        2, 1,
+        1, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::move)));
 
@@ -102,21 +105,11 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         1, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::interact)));
-    
-    
+
     runner.scheduleEvent(
-        1, 1,
-        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
-            agentsPos, &repast::DataSet::record)));
-    /*
-    runner.scheduleEvent(
-        1, 1,
-        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
-            agentsPos, &repast::DataSet::write)));
-    */
-    runner.scheduleEndEvent(
-        repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
-            agentsPos, &repast::DataSet::write)));
+        3, 1,
+        repast::Schedule::FunctorPtr(
+            new repast::MethodFunctor<Model>(this, &Model::write)));
 
     // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
@@ -125,20 +118,8 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
     runner.scheduleStop(lifetime);
 }
 
-void Model::move() {
-    std::vector<Virus*> agents;
-    context.selectAgents(repast::SharedContext<Virus>::LOCAL, countOfAgents,
-                         agents);
-
-    std::vector<Virus*>::iterator it = agents.begin();
-
-    it = agents.begin();
-    while (it != agents.end()) {
-        (*it)->move(virusDiscreteSpace, virusContinSpace);
-        it++;
-    }
-    
-    virusDiscreteSpace->balance();  
+void Model::balanceAgents() {
+    virusDiscreteSpace->balance();
     repast::RepastProcess::instance()
         ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(
@@ -153,24 +134,96 @@ void Model::move() {
         ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(*virusProvider,
                                                        *virusReceiver);
-    std::vector<Virus*> test;
-    context.selectAgents(test, false);
-    if(test.size() != 10){
-        cout << "LOST AGENTS " << test.size() << " " << repast::RepastProcess::instance()->rank() << std::endl;
-    }                                                       
+}
+
+void Model::move() {
+    // cout << "starting move" << std::endl;
+    std::vector<Virus*> agents;
+
+    if (context.size() == 0) {
+        balanceAgents();
+        return;
+    }
+
+    context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
+
+    // if(repast::RepastProcess::instance()->rank() == 0)
+    //     cout << agents.size() << std::endl;
+
+    std::vector<Virus*>::iterator it = agents.begin();
+
+    it = agents.begin();
+    std::vector<double> loc;
+    while (it != agents.end()) {
+        (*it)->move(virusDiscreteSpace, virusContinSpace);
+        if (repast::RepastProcess::instance()->rank() == 0 && false) {
+            virusContinSpace->getLocation((*it)->getId(), loc);
+            cout << "x: " << loc[0] << " y: " << loc[1] << std::endl;
+        }
+        it++;
+    }
+
+    balanceAgents();
 }
 
 void Model::interact() {
+    // cout << "starting interact" << std::endl;
     std::vector<Virus*> agents;
-    context.selectAgents(repast::SharedContext<Virus>::LOCAL, countOfAgents,
-                         agents);
+    std::vector<double> loc;
 
+    if (context.size() == 0) {
+        return;
+    }
 
+    context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents);
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
         (*it)->interact(&context, virusDiscreteSpace, virusContinSpace);
         it++;
     }
+    // cout << "interact finished" << std::endl;
+}
+
+void Model::write() {
+    double tick =
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+    virusPosData << tick << ",";
+
+    std::vector<std::tuple<int, double, double>> out;
+
+    for (int proc = 0; proc < worldSize; proc++) {
+        for (int i = 0; i < countOfAgents; i++) {
+            out.push_back(std::make_tuple(0, 0.0, 0.0));
+        }
+    }
+
+    if (context.size() != 0) {
+        std::vector<Virus*> agents;
+        context.selectAgents(agents, false);
+        std::vector<Virus*>::iterator it = agents.begin();
+        while (it != agents.end()) {
+            Virus* a = (*it);
+            std::vector<double> loc;
+            virusContinSpace->getLocation(a->getId(), loc);
+            int index = countOfAgents * a->getId().startingRank() + a->getId().id();
+
+            std::get<0>(out[index]) = 1;
+            std::get<1>(out[index]) = loc[0];
+            std::get<2>(out[index]) = loc[1];
+
+            it++;
+        }
+    }
+
+    for (long unsigned int i = 0; i < out.size(); i++) {
+        if (std::get<0>(out[i]) == 0) {
+            virusPosData << "????,????,";
+        } else {
+            virusPosData << std::get<1>(out[i]) << "," << std::get<2>(out[i])
+                         << ",";
+        }
+    }
+    virusPosData << std::endl;
 }
 
 void Model::printAgentCounters() {
