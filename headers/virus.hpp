@@ -1,25 +1,26 @@
-#ifndef AGENT
-#define AGENT
+#ifndef VIRUS
+#define VIRUS
 
 #include <stdlib.h>
 
 #include "constants.hpp"
+#include "agentbase.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
 
-class Virus {
-    Vector vel;
-    repast::AgentId id;
-
+class Virus : AgentBase {
    public:
     unsigned int testCounter;
 
-    Virus() {
-        vel.x = 0;
-        vel.y = 0;
+    Virus() : AgentBase() {}
+
+    Virus(repast::AgentId id, Vector vel, int testCounter) {
+        this->id = id;
+        this->vel = vel;
+        this->testCounter = testCounter;
     }
 
     // Getters for the serialisation
@@ -30,11 +31,6 @@ class Virus {
     Vector getVel() { return vel; }
     int getTestCounter() { return testCounter; }
 
-    Virus(repast::AgentId id, Vector vel, int testCounter) {
-        this->id = id;
-        this->vel = vel;
-        this->testCounter = testCounter;
-    }
 
     void set(repast::AgentId id, Vector vel, int testCounter) {
         this->id = id;

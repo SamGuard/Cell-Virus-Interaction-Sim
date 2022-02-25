@@ -7,7 +7,7 @@ build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/vi
 ./objects/data_collectors.o: ./source/data_collectors.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/data_collectors.cpp -o ./objects/data_collectors.o -Wall -g
 
-./objects/virus.o: ./source/virus.cpp
+./objects/virus.o: ./headers/agentbase.hpp ./source/virus.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/virus.cpp -o ./objects/virus.o -Wall -g
 
 ./objects/communicators.o: ./headers/virus.hpp ./source/communicators.cpp
