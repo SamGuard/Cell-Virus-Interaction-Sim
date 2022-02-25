@@ -92,7 +92,6 @@ void Model::init() {
 
     // Move randomly places agents into the correct processes
     balanceAgents();
-    cout << "Rank " << rank << " " << "size " << context.size() << std::endl;
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
@@ -137,7 +136,6 @@ void Model::balanceAgents() {
 }
 
 void Model::move() {
-    // cout << "starting move" << std::endl;
     std::vector<Virus*> agents;
 
     if (context.size() == 0) {
@@ -147,8 +145,6 @@ void Model::move() {
 
     context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
 
-    // if(repast::RepastProcess::instance()->rank() == 0)
-    //     cout << agents.size() << std::endl;
 
     std::vector<Virus*>::iterator it = agents.begin();
 
@@ -156,10 +152,6 @@ void Model::move() {
     std::vector<double> loc;
     while (it != agents.end()) {
         (*it)->move(virusDiscreteSpace, virusContinSpace);
-        if (repast::RepastProcess::instance()->rank() == 0 && false) {
-            virusContinSpace->getLocation((*it)->getId(), loc);
-            cout << "x: " << loc[0] << " y: " << loc[1] << std::endl;
-        }
         it++;
     }
 
@@ -167,7 +159,6 @@ void Model::move() {
 }
 
 void Model::interact() {
-    // cout << "starting interact" << std::endl;
     std::vector<Virus*> agents;
     std::vector<double> loc;
 
@@ -181,7 +172,7 @@ void Model::interact() {
         (*it)->interact(&context, virusDiscreteSpace, virusContinSpace);
         it++;
     }
-    // cout << "interact finished" << std::endl;
+    
 }
 
 void Model::write() {
