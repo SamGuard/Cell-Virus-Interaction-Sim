@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
-#include "constants.hpp"
 #include "agentbase.hpp"
+#include "constants.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
@@ -15,12 +15,11 @@ class Virus : AgentBase {
    public:
     unsigned int testCounter;
 
-    Virus() : AgentBase() {}
+    Virus() : AgentBase() { agentType = VirusType; }
 
-    Virus(repast::AgentId id, Vector vel, int testCounter) {
-        this->id = id;
-        this->vel = vel;
+    Virus(repast::AgentId id, Vector vel, int testCounter) : AgentBase(id, vel) {
         this->testCounter = testCounter;
+        this->agentType = VirusType;
     }
 
     // Getters for the serialisation

@@ -7,3 +7,5 @@ BOOST_LIBS=-lboost_mpi-mt -lboost_serialization-mt -lboost_system-mt -lboost_fil
 REPAST_HPC_INCLUDE=-isystem/home/sam/sfw/repast_hpc-2.3.1/include/
 REPAST_HPC_LIB_DIR=-L/home/sam/sfw/repast_hpc-2.3.1/lib/
 REPAST_HPC_LIB=-lrepast_hpc-2.3.1
+
+COMP_FLAGS=-Wall -g -O3

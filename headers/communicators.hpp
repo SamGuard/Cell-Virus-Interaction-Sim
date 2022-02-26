@@ -1,3 +1,4 @@
+#include "agentbase.hpp"
 #include "virus.hpp"
 #include "repast_hpc/Context.h"
 

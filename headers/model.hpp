@@ -43,9 +43,6 @@ class Model {
                                   repast::SimpleAdder<Virus> >*
         virusContinSpace;
     repast::SharedContext<Virus> context;
-    repast::SVDataSet* virusPositions;
-    repast::SVDataSetBuilder* builder;
-    repast::SVDataSet* agentsPos;
     std::ofstream virusPosData;
 
     // ------------------------------------------------

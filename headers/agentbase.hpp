@@ -14,15 +14,18 @@ class AgentBase {
    public:
     Vector vel;
     repast::AgentId id;
+    AgentType agentType;
 
     AgentBase() {
-        vel.x = 0;
-        vel.y = 0;
+        this->vel.x = 0;
+        this->vel.y = 0;
+        this->agentType = BaseAgentType;
     }
 
     AgentBase(repast::AgentId id, Vector vel) {
         this->id = id;
         this->vel = vel;
+        this->agentType = BaseAgentType;
     }
 
     virtual ~AgentBase() {}
@@ -56,29 +59,6 @@ class AgentBase {
         repast::SharedContinuousSpace<AgentBase, repast::StrictBorders,
                                       repast::SimpleAdder<AgentBase>>*
             virusContinSpace){};
-};
-
-/* Serializable Agent Package */
-struct AgentBasePackage {
-   public:
-    int id, rank, type, currentRank;
-    double velx, vely;
-
-    /* Constructors */
-    AgentBasePackage();  // For serialization
-    AgentBasePackage(int _id, int _rank, int _type, int _currentRank,
-                     double _velx, double _vely);
-
-    /* For archive packaging */
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
-        ar& id;
-        ar& rank;
-        ar& type;
-        ar& currentRank;
-        ar& velx;
-        ar& vely;
-    }
 };
 
 #endif

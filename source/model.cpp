@@ -52,10 +52,13 @@ void Model::init() {
     // Data collection
     // file to log agent positions to
     char* fileOutputName = (char*)malloc(128 * sizeof(char));
+    sprintf(fileOutputName, "output/virus_pos_data_%d.dat", rank);
+    virusPosData.open(fileOutputName, std::ios::out | std::ios::trunc);
+
+    /*
     {
         char* buff = (char*)malloc(128 * sizeof(char));
-        sprintf(fileOutputName, "output/virus_pos_data_%d.csv", rank);
-        virusPosData.open(fileOutputName, std::ios::out | std::ios::trunc);
+
         virusPosData << "tick,";
         for (int proc = 0; proc < worldSize; proc++) {
             for (int i = 0; i < countOfAgents; i++) {
@@ -68,6 +71,7 @@ void Model::init() {
         virusPosData << std::endl;
         free(buff);
     }
+    */
 
     double spawnSize = 100.0;
 
@@ -83,6 +87,7 @@ void Model::init() {
         vel.x = randNum->nextDouble() - 0.5;
         vel.y = randNum->nextDouble() - 0.5;
         Virus* agent = new Virus(id, vel, 0);
+        virusPosData << "created:" << id.id() << "|" << id.startingRank() << std::endl;
         context.addAgent(agent);
         virusDiscreteSpace->moveTo(id, initialLocationDiscrete);
         virusContinSpace->moveTo(id, initialLocationContinuous);
@@ -145,7 +150,6 @@ void Model::move() {
 
     context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
 
-
     std::vector<Virus*>::iterator it = agents.begin();
 
     it = agents.begin();
@@ -172,21 +176,14 @@ void Model::interact() {
         (*it)->interact(&context, virusDiscreteSpace, virusContinSpace);
         it++;
     }
-    
 }
 
 void Model::write() {
-    double tick =
-        repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-    virusPosData << tick << ",";
-
-    std::vector<std::tuple<int, double, double>> out;
-
-    for (int proc = 0; proc < worldSize; proc++) {
-        for (int i = 0; i < countOfAgents; i++) {
-            out.push_back(std::make_tuple(0, 0.0, 0.0));
-        }
-    }
+    // double tick =
+    // repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+    //  Array of tuples
+    //  Tuple is id, start rank, is in this proc, x, y
+    std::vector<std::tuple<int, int, double, double>> out;
 
     if (context.size() != 0) {
         std::vector<Virus*> agents;
@@ -196,23 +193,20 @@ void Model::write() {
             Virus* a = (*it);
             std::vector<double> loc;
             virusContinSpace->getLocation(a->getId(), loc);
-            int index = countOfAgents * a->getId().startingRank() + a->getId().id();
 
-            std::get<0>(out[index]) = 1;
-            std::get<1>(out[index]) = loc[0];
-            std::get<2>(out[index]) = loc[1];
+            out.push_back(std::make_tuple(
+                a->getId().id(), a->getId().startingRank(), loc[0], loc[1]));
 
             it++;
         }
     }
 
+    virusPosData << "setpos:";
+    std::tuple<int, int, double, double> entry;
     for (long unsigned int i = 0; i < out.size(); i++) {
-        if (std::get<0>(out[i]) == 0) {
-            virusPosData << "????,????,";
-        } else {
-            virusPosData << std::get<1>(out[i]) << "," << std::get<2>(out[i])
-                         << ",";
-        }
+        entry = out[i];
+        virusPosData << std::get<0>(entry) << "|" << std::get<1>(entry) << "|"
+                     << std::get<2>(entry) << "|" << std::get<3>(entry) << ",";
     }
     virusPosData << std::endl;
 }

@@ -1,14 +1,12 @@
+from io import TextIOWrapper
+from typing import Dict, List
 from graphics import *
-import csv
 import time
 
 WIDTH = HEIGHT = 600
 NUM_PROCESSORS = 4
 
 win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
-rect = Rectangle(Point(0, 0), Point(WIDTH, HEIGHT))
-rect.setFill("white")
-rect.draw(win)
 
 win.setBackground("white")
 
@@ -24,66 +22,70 @@ def applyTransforms(x, y):
     return [x, y]
 
 
+class Agent:
+    def __init__(this, id: str, x: float, y: float):
+        this.shape = Oval(Point(0, 0), Point(5, 5))
+        this.shape.move(x, y)
+        this.shape.setFill("black")
+        this.shape.draw(win)
+        this.id = id
+
+    def move(this, x, y):
+        cPoint = this.shape.getP2()
+        cPos = [cPoint.getX(), cPoint.getY()]
+        this.shape.move(x - cPos[0], y - cPos[1])
+
+
 startTime = 0
 
-readers = []
+fileReaders = []
 
 for i in range(NUM_PROCESSORS):
-    csvData = open("../output/virus_pos_data_{}.csv".format(i),
-                   mode='r', newline="")
-    readers.append(list(csv.reader(csvData, delimiter=',')))
+    fileReaders.append(open("../output/virus_pos_data_{}.dat".format(i), 'r'))
 
 
-numReaders = len(readers)
+def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent], currentRead: int):
+    if(currentRead >= NUM_PROCESSORS):
+        return
+    cReader: TextIOWrapper = fileReaders[currentRead]
+    while(True):
+        s = cReader.readline()
+        if len(s) == 0:
+            break
+        [command, payload] = s.split("\n")[0].split(":")
+        if command == "setpos":
+            mainLoop(fileReaders, agents, currentRead + 1)
+            # print(list(agents))
+            for locUpdate in payload.split(","):
+                if len(locUpdate) == 0:
+                    break
+                [partID, startR, x, y] = locUpdate.split("|")
+                [x, y] = applyTransforms(float(x), float(y))
+                id = partID + "|" + startR
+                agents[id].move(x, y)
 
-fullData = []
-# Create full data array
-numIterations = 0
-for row in readers[0][1:]:
-    fullData.append([])
-    for i in range(1, len(row) - 1, 2):
-        fullData[numIterations].append([0, 0])
+            if(currentRead != 0):
+                return
+        elif command == "created":
+            [x, y] = applyTransforms(0, 0)
+            agents[payload] = Agent(payload, x, y)
+        else:
+            print("ERROR: COMMAND NOT RECOGNISED")
+        update()
 
-    numIterations += 1
+
+mainLoop(fileReaders, {}, 0)
 
 
-# Put data into fullData
-for reader in readers:
-    currentRow = -1
-    for row in reader:
-        if(currentRow == -1):
-            currentRow = 0
-            continue
-        for i in range(1, len(row) - 1, 2):
-            x = row[i]
-            y = row[i+1]
-            if(x == "????" or y == "????"):
-                continue
-            fullData[currentRow][int((i-1) / 2)][0] = float(x)
-            fullData[currentRow][int((i-1) / 2)][1] = float(y)
-        currentRow += 1
-
-# Init agent shapes
-agents = []
-for i in fullData[0]:
-    agents.append(Oval(Point(10, 10), Point(5, 5)))
-    agents[-1].setFill("black")
-    agents[-1].draw(win)
-
-targetTimeSeconds = 1 / 10
-targetTime = targetTimeSeconds * 100000000
-for row in range(len(fullData)):
-    startTime = time.time_ns()
-    for i in range(len(fullData[row])):
+'''
         [x, y] = fullData[row][i]
         print(x, y)
         [x, y] = applyTransforms(x, y)
 
-        cPoint = agents[i].getP2()
-        cPos = [cPoint.getX(), cPoint.getY()]
-        agents[i].move(x - cPos[0], y - cPos[1])
+        
     update()
     timeDiff = targetTime - (time.time_ns() - startTime)
     if(timeDiff > 0):
         pass
         #time.sleep(timeDiff / targetTime)
+'''
