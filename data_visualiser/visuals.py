@@ -44,17 +44,18 @@ for i in range(NUM_PROCESSORS):
     fileReaders.append(open("../output/virus_pos_data_{}.dat".format(i), 'r'))
 
 
-def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent], currentRead: int):
-    if(currentRead >= NUM_PROCESSORS):
-        return
+def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
+    currentRead = 0
     cReader: TextIOWrapper = fileReaders[currentRead]
     while(True):
         s = cReader.readline()
         if len(s) == 0:
             break
         [command, payload] = s.split("\n")[0].split(":")
-        if command == "setpos":
-            mainLoop(fileReaders, agents, currentRead + 1)
+        if command == "tick":
+            currentRead = (currentRead + 1) % NUM_PROCESSORS
+            cReader = fileReaders[currentRead]
+        elif command == "setpos":
             # print(list(agents))
             for locUpdate in payload.split(","):
                 if len(locUpdate) == 0:
@@ -63,9 +64,6 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent], current
                 [x, y] = applyTransforms(float(x), float(y))
                 id = partID + "|" + startR
                 agents[id].move(x, y)
-
-            if(currentRead != 0):
-                return
         elif command == "created":
             [x, y] = applyTransforms(0, 0)
             agents[payload] = Agent(payload, x, y)
@@ -74,18 +72,4 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent], current
         update()
 
 
-mainLoop(fileReaders, {}, 0)
-
-
-'''
-        [x, y] = fullData[row][i]
-        print(x, y)
-        [x, y] = applyTransforms(x, y)
-
-        
-    update()
-    timeDiff = targetTime - (time.time_ns() - startTime)
-    if(timeDiff > 0):
-        pass
-        #time.sleep(timeDiff / targetTime)
-'''
+mainLoop(fileReaders, {})

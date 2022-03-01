@@ -22,6 +22,23 @@
 #include "repast_hpc/TDataSource.h"
 #include "virus.hpp"
 
+
+struct AgentContexts{
+    repast::SharedContext<Virus>* virus;
+};
+
+struct AgentSpaces {
+    repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                  repast::SimpleAdder<Virus>>* virusCont;
+    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                repast::SimpleAdder<Virus>>* virusDisc;
+};
+
+struct AgentComm{
+    VirusPackageProvider* virusProv;
+    VirusPackageReceiver* virusRec;
+};
+
 class Model {
    public:
     Model(std::string propsFile, int argc, char** argv,
@@ -33,17 +50,22 @@ class Model {
     std::string propsFile;
     repast::Properties* props;
 
+    AgentContexts contexts;
+    AgentSpaces spaces;
+    AgentComm comms;
+
     // Virus stuff
+    /*
     VirusPackageProvider* virusProvider;
     VirusPackageReceiver* virusReceiver;
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                repast::SimpleAdder<Virus> >*
-        virusDiscreteSpace;
+                                repast::SimpleAdder<Virus>>* virusDiscreteSpace;
     repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus> >*
-        virusContinSpace;
+                                  repast::SimpleAdder<Virus>>* virusContinSpace;
     repast::SharedContext<Virus> context;
-    std::ofstream virusPosData;
+    */
+    std::stringstream virusPosData;
+    std::ofstream virusPosDataFile;
 
     // ------------------------------------------------
 
@@ -53,7 +75,8 @@ class Model {
 
     void move();
     void interact();
-    void write();
+    void collectVirusData();
+    void writeVirusData();
     void printAgentCounters();
 };
 #endif

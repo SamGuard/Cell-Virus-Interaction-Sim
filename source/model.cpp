@@ -9,12 +9,13 @@
 #define RANK 1
 
 Model::Model(std::string propsFile, int argc, char** argv,
-             boost::mpi::communicator* comm)
-    : context(comm) {
+             boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
 
-    virusProvider = new VirusPackageProvider(&context);
-    virusReceiver = new VirusPackageReceiver(&context);
+    contexts.virus = new repast::SharedContext<Virus>(comm);
+
+    comms.virusProv = new VirusPackageProvider(contexts.virus);
+    comms.virusRec = new VirusPackageReceiver(contexts.virus);
 
     lifetime = stoi(props->getProperty("lifetime"));
     countOfAgents = stoi(props->getProperty("agentCount"));
@@ -29,17 +30,18 @@ Model::Model(std::string propsFile, int argc, char** argv,
     processDims.push_back(2);
     processDims.push_back(2);
 
-    virusDiscreteSpace =
-        new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                        repast::SimpleAdder<Virus>>(
-            "AgentDiscreteSpace", gd, processDims, 2, comm);
-    virusContinSpace =
+    spaces.virusCont =
         new repast::SharedContinuousSpace<Virus, repast::StrictBorders,
                                           repast::SimpleAdder<Virus>>(
             "AgentContinuousSpace", gd, processDims, 0, comm);
 
-    context.addProjection(virusContinSpace);
-    context.addProjection(virusDiscreteSpace);
+    spaces.virusDisc =
+        new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                        repast::SimpleAdder<Virus>>(
+            "AgentDiscreteSpace", gd, processDims, 2, comm);
+
+    contexts.virus->addProjection(spaces.virusCont);
+    contexts.virus->addProjection(spaces.virusDisc);
 }
 
 void Model::init() {
@@ -53,26 +55,10 @@ void Model::init() {
     // file to log agent positions to
     char* fileOutputName = (char*)malloc(128 * sizeof(char));
     sprintf(fileOutputName, "output/virus_pos_data_%d.dat", rank);
-    virusPosData.open(fileOutputName, std::ios::out | std::ios::trunc);
+    virusPosDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
+    
 
-    /*
-    {
-        char* buff = (char*)malloc(128 * sizeof(char));
-
-        virusPosData << "tick,";
-        for (int proc = 0; proc < worldSize; proc++) {
-            for (int i = 0; i < countOfAgents; i++) {
-                sprintf(buff, "agent_x_%d_%d,", i, proc);
-                virusPosData << buff;
-                sprintf(buff, "agent_y_%d_%d,", i, proc);
-                virusPosData << buff;
-            }
-        }
-        virusPosData << std::endl;
-        free(buff);
-    }
-    */
-
+    // Add viruses to model
     double spawnSize = 100.0;
 
     for (int i = 0; i < countOfAgents; i++) {
@@ -87,10 +73,11 @@ void Model::init() {
         vel.x = randNum->nextDouble() - 0.5;
         vel.y = randNum->nextDouble() - 0.5;
         Virus* agent = new Virus(id, vel, 0);
-        virusPosData << "created:" << id.id() << "|" << id.startingRank() << std::endl;
-        context.addAgent(agent);
-        virusDiscreteSpace->moveTo(id, initialLocationDiscrete);
-        virusContinSpace->moveTo(id, initialLocationContinuous);
+        virusPosData << "created:" << id.id() << "|" << id.startingRank()
+                     << std::endl;
+        contexts.virus->addAgent(agent);
+        spaces.virusDisc->moveTo(id, initialLocationDiscrete);
+        spaces.virusCont->moveTo(id, initialLocationContinuous);
     }
 
     std::vector<Virus*> agents;
@@ -111,9 +98,13 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
             new repast::MethodFunctor<Model>(this, &Model::interact)));
 
     runner.scheduleEvent(
-        3, 1,
+        1, 1,
         repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<Model>(this, &Model::write)));
+            new repast::MethodFunctor<Model>(this, &Model::collectVirusData)));
+    runner.scheduleEvent(
+        1, 5,
+        repast::Schedule::FunctorPtr(
+            new repast::MethodFunctor<Model>(this, &Model::writeVirusData)));            
 
     // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
@@ -123,39 +114,41 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 }
 
 void Model::balanceAgents() {
-    virusDiscreteSpace->balance();
+
+    // Virus
+    spaces.virusDisc->balance();
     repast::RepastProcess::instance()
         ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(
-            context, *virusProvider, *virusReceiver, *virusReceiver);
+            *contexts.virus, *comms.virusProv, *comms.virusRec, *comms.virusRec);
 
     repast::RepastProcess::instance()
         ->synchronizeProjectionInfo<Virus, VirusPackage, VirusPackageProvider,
                                     VirusPackageReceiver>(
-            context, *virusProvider, *virusReceiver, *virusReceiver);
+            *contexts.virus, *comms.virusProv, *comms.virusRec, *comms.virusRec);
 
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*virusProvider,
-                                                       *virusReceiver);
+                                 VirusPackageReceiver>(*comms.virusProv,
+                                                       *comms.virusRec);
 }
 
 void Model::move() {
     std::vector<Virus*> agents;
 
-    if (context.size() == 0) {
+    if (contexts.virus->size() == 0) {
         balanceAgents();
         return;
     }
 
-    context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
+    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
 
     std::vector<Virus*>::iterator it = agents.begin();
 
     it = agents.begin();
     std::vector<double> loc;
     while (it != agents.end()) {
-        (*it)->move(virusDiscreteSpace, virusContinSpace);
+        (*it)->move(spaces.virusDisc, spaces.virusCont);
         it++;
     }
 
@@ -166,33 +159,36 @@ void Model::interact() {
     std::vector<Virus*> agents;
     std::vector<double> loc;
 
-    if (context.size() == 0) {
+    if (contexts.virus->size() == 0) {
         return;
     }
 
-    context.selectAgents(repast::SharedContext<Virus>::LOCAL, agents);
+    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents);
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
-        (*it)->interact(&context, virusDiscreteSpace, virusContinSpace);
+        (*it)->interact(contexts.virus, spaces.virusDisc, spaces.virusCont);
         it++;
     }
 }
 
-void Model::write() {
-    // double tick =
-    // repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+void Model::collectVirusData() {
+    double tick =
+    repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+
+    virusPosData << "tick:" << tick << std::endl;
+
     //  Array of tuples
     //  Tuple is id, start rank, is in this proc, x, y
     std::vector<std::tuple<int, int, double, double>> out;
 
-    if (context.size() != 0) {
+    if (contexts.virus->size() != 0) {
         std::vector<Virus*> agents;
-        context.selectAgents(agents, false);
+        contexts.virus->selectAgents(agents, false);
         std::vector<Virus*>::iterator it = agents.begin();
         while (it != agents.end()) {
             Virus* a = (*it);
             std::vector<double> loc;
-            virusContinSpace->getLocation(a->getId(), loc);
+            spaces.virusCont->getLocation(a->getId(), loc);
 
             out.push_back(std::make_tuple(
                 a->getId().id(), a->getId().startingRank(), loc[0], loc[1]));
@@ -211,16 +207,20 @@ void Model::write() {
     virusPosData << std::endl;
 }
 
+void Model::writeVirusData(){
+    virusPosDataFile << virusPosData.rdbuf();
+}
+
 void Model::printAgentCounters() {
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*virusProvider,
-                                                       *virusReceiver);
+                                 VirusPackageReceiver>(*comms.virusProv,
+                                                       *comms.virusRec);
     if (repast::RepastProcess::instance()->rank() != 0) {
         return;
     }
     std::vector<Virus*> agents;
-    context.selectAgents(countOfAgents, agents);
+    contexts.virus->selectAgents(countOfAgents, agents);
 
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
