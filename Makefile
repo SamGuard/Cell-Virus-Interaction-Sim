@@ -29,7 +29,8 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 
 
 del_data:
-	-rm ./output/*
+	- rm ./output/*
+	- rm ./data_visualiser/images/*
 
 clean: del_data
 	- rm ./objects/*
@@ -42,9 +43,10 @@ debug: del_data
 		mpirun -np 4 xterm -e gdb --args ./bin/main config.props model.props
 
 run_vis:
+	- rm ./data_visualiser/images/*
 	cd ./data_visualiser; \
-	python3 ./visuals.py
+	python3 ./visuals.py; \
 
 movie:
-	cd ./data_visualiser/images/; \
-	ffmpeg -framerate 20 -i tick_%00d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p output.mp4
+	cd ./data_visualiser/; \
+	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p output.mp4
