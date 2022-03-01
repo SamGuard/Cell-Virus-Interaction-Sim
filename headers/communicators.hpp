@@ -1,6 +1,7 @@
 #include "agentbase.hpp"
-#include "virus.hpp"
+#include "cell.hpp"
 #include "repast_hpc/Context.h"
+#include "virus.hpp"
 
 /* Agent Package Provider */
 class VirusPackageProvider {
@@ -27,4 +28,31 @@ class VirusPackageReceiver {
     Virus* createAgent(VirusPackage package);
 
     void updateAgent(VirusPackage package);
+};
+
+/* Agent Package Provider */
+class CellPackageProvider {
+   private:
+    repast::SharedContext<Cell>* agents;
+
+   public:
+    CellPackageProvider(repast::SharedContext<Cell>* agentPtr);
+
+    void providePackage(Cell* agent, std::vector<CellPackage>& out);
+
+    void provideContent(repast::AgentRequest req,
+                        std::vector<CellPackage>& out);
+};
+
+/* Agent Package Receiver */
+class CellPackageReceiver {
+   private:
+    repast::SharedContext<Cell>* agents;
+
+   public:
+    CellPackageReceiver(repast::SharedContext<Cell>* agentPtr);
+
+    Cell* createAgent(CellPackage package);
+
+    void updateAgent(CellPackage package);
 };

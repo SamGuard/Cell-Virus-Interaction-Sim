@@ -77,6 +77,7 @@ class Model {
     void interact();
     void collectVirusData();
     void writeVirusData();
+    void printTick();
     void printAgentCounters();
 };
 #endif

@@ -56,7 +56,6 @@ void Model::init() {
     char* fileOutputName = (char*)malloc(128 * sizeof(char));
     sprintf(fileOutputName, "output/virus_pos_data_%d.dat", rank);
     virusPosDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
-    
 
     // Add viruses to model
     double spawnSize = 100.0;
@@ -72,12 +71,15 @@ void Model::init() {
         Vector vel;
         vel.x = randNum->nextDouble() - 0.5;
         vel.y = randNum->nextDouble() - 0.5;
+        virusPosData << "created:" << id.id() << "|" << id.startingRank() << "|"
+                     << agentTypeToInt(VirusType) << std::endl;
         Virus* agent = new Virus(id, vel, 0);
-        virusPosData << "created:" << id.id() << "|" << id.startingRank()
-                     << std::endl;
         contexts.virus->addAgent(agent);
         spaces.virusDisc->moveTo(id, initialLocationDiscrete);
         spaces.virusCont->moveTo(id, initialLocationContinuous);
+        virusPosData << "setpos:" << id.id() << "|" << id.startingRank() << "|"
+                     << initialLocationContinuous[0] << "|"
+                     << initialLocationContinuous[1] << std::endl;
     }
 
     std::vector<Virus*> agents;
@@ -104,7 +106,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
     runner.scheduleEvent(
         1, 5,
         repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<Model>(this, &Model::writeVirusData)));            
+            new repast::MethodFunctor<Model>(this, &Model::writeVirusData)));
 
     // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
@@ -114,18 +116,19 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 }
 
 void Model::balanceAgents() {
-
     // Virus
     spaces.virusDisc->balance();
     repast::RepastProcess::instance()
         ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec, *comms.virusRec);
+            *contexts.virus, *comms.virusProv, *comms.virusRec,
+            *comms.virusRec);
 
     repast::RepastProcess::instance()
         ->synchronizeProjectionInfo<Virus, VirusPackage, VirusPackageProvider,
                                     VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec, *comms.virusRec);
+            *contexts.virus, *comms.virusProv, *comms.virusRec,
+            *comms.virusRec);
 
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
@@ -141,10 +144,9 @@ void Model::move() {
         return;
     }
 
-    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents, false);
-
+    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents,
+                                 false);
     std::vector<Virus*>::iterator it = agents.begin();
-
     it = agents.begin();
     std::vector<double> loc;
     while (it != agents.end()) {
@@ -173,7 +175,7 @@ void Model::interact() {
 
 void Model::collectVirusData() {
     double tick =
-    repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
     virusPosData << "tick:" << tick << std::endl;
 
@@ -181,10 +183,12 @@ void Model::collectVirusData() {
     //  Tuple is id, start rank, is in this proc, x, y
     std::vector<std::tuple<int, int, double, double>> out;
 
+    // If there are any viruses to log data for
     if (contexts.virus->size() != 0) {
         std::vector<Virus*> agents;
         contexts.virus->selectAgents(agents, false);
         std::vector<Virus*>::iterator it = agents.begin();
+        // Iterate threw and get the location of them all
         while (it != agents.end()) {
             Virus* a = (*it);
             std::vector<double> loc;
@@ -207,9 +211,7 @@ void Model::collectVirusData() {
     virusPosData << std::endl;
 }
 
-void Model::writeVirusData(){
-    virusPosDataFile << virusPosData.rdbuf();
-}
+void Model::writeVirusData() { virusPosDataFile << virusPosData.rdbuf(); }
 
 void Model::printAgentCounters() {
     repast::RepastProcess::instance()
