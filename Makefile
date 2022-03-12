@@ -31,6 +31,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 del_data:
 	- rm ./output/*
 	- rm ./data_visualiser/images/*
+	- rm ./data_visualiser/output.mp4
 
 clean: del_data
 	- rm ./objects/*
@@ -50,3 +51,5 @@ run_vis:
 movie:
 	cd ./data_visualiser/; \
 	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p output.mp4
+
+full: build run run_vis movie	

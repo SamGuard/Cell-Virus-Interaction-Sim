@@ -45,9 +45,9 @@ void Cell::interact(
 }
 
 CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank,
-                         CellState _state)
+                         CellState _state, bool _hasStateChanged)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
-      state(_state) {}
+      state(_state), hasStateChanged(_hasStateChanged) {}

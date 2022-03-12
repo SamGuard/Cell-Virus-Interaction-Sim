@@ -291,7 +291,7 @@ void Model::collectVirusData() {
     // If there are any viruses to log data for
     if (contexts.virus->size() != 0) {
         std::vector<Virus*> agents;
-        contexts.virus->selectAgents(agents, false);
+        contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents);
         std::vector<Virus*>::iterator it = agents.begin();
         // Iterate threw and get the location of them all
         while (it != agents.end()) {
@@ -336,12 +336,15 @@ void Model::collectCellData() {
 
     if (contexts.cell->size() != 0) {
         std::vector<Cell*> agents;
-        contexts.cell->selectAgents(agents, false);
+        contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
         std::vector<Cell*>::iterator it = agents.begin();
         // Iterate through and get the location of them all
         while (it != agents.end()) {
             Cell* a = (*it);
-            out.push_back(std::make_tuple(a->getId(), a->getState()));
+            if(a->hasStateChanged){
+                out.push_back(std::make_tuple(a->getId(), a->getState()));
+                a->hasStateChanged = false;
+            }
             it++;
         }
     }
