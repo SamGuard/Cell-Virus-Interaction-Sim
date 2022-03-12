@@ -338,7 +338,7 @@ void Model::collectCellData() {
         std::vector<Cell*> agents;
         contexts.cell->selectAgents(agents, false);
         std::vector<Cell*>::iterator it = agents.begin();
-        // Iterate threw and get the location of them all
+        // Iterate through and get the location of them all
         while (it != agents.end()) {
             Cell* a = (*it);
             out.push_back(std::make_tuple(a->getId(), a->getState()));
