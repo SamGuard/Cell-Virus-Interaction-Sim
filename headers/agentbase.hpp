@@ -37,7 +37,7 @@ class AgentBase {
     // Getter for agent specific attributes
     Vector getVel() { return vel; }
 
-    virtual void set(repast::AgentId id, Vector vel, int testCounter) {
+    virtual void set(repast::AgentId id, Vector vel) {
         this->id = id;
         this->vel = vel;
     }

@@ -11,7 +11,7 @@
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
 
-class Virus : AgentBase {
+class Virus : public AgentBase {
    public:
     unsigned int testCounter;
 
@@ -21,10 +21,6 @@ class Virus : AgentBase {
         this->testCounter = testCounter;
         this->agentType = VirusType;
     }
-
-    // Getters for the serialisation
-    virtual repast::AgentId& getId() { return id; }
-    virtual const repast::AgentId& getId() const { return id; }
 
     // Getter for agent specific attributes
     Vector getVel() { return vel; }

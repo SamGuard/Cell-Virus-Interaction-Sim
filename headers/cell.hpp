@@ -39,7 +39,7 @@ struct CellPackage {
     CellState state;
 
     /* Constructors */
-    CellPackage();  // For serialization
+    CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
                 CellState _state);
 

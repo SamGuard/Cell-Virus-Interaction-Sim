@@ -17,7 +17,7 @@ win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
 win.setBackground("white")
 
 scale = WIDTH / 200
-offset = WIDTH / 2
+offset = 0
 
 
 def saveImage(tick):
@@ -49,12 +49,22 @@ class Agent:
         this.shape.move(x - cPos[0], y - cPos[1])
 
 
+class Virus(Agent):
+    def __init__(this, id: str, t: int, x: float, y: float):
+        this.shape = Rectangle(Point(0, 0), Point(5, 5))
+        this.shape.move(x, y)
+        this.shape.setFill("black")
+        this.shape.draw(win)
+        this.id = id
+        this.t = t  # type
+
+
 startTime = 0
 
 fileReaders = []
 
 for i in range(NUM_PROCESSORS):
-    fileReaders.append(open("../output/virus_pos_data_{}.dat".format(i), 'r'))
+    fileReaders.append(open("../output/sim_{}.dat".format(i), 'r'))
 
 
 def getNextLine(fileReader: TextIOWrapper, buff: List[str]) -> str:
@@ -100,15 +110,14 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
             for locUpdate in payload.split(","):
                 if len(locUpdate) == 0:
                     break
-                [partID, startR, x, y] = locUpdate.split("|")
+                [partID, startR, agentType, x, y] = locUpdate.split("|")
                 [x, y] = applyTransforms(float(x), float(y))
-                id = partID + "|" + startR
+                id = partID + "|" + startR + "|" + agentType
                 agents[id].move(x, y)
         elif command == "created":
-            [partID, sRank, agentType] = payload.split("|")
-            id = partID + "|" + sRank
+            [_, _, agentType] = payload.split("|")
             [x, y] = applyTransforms(0, 0)
-            agents[id] = Agent(id, agentType, x, y)
+            agents[payload] = Agent(payload, agentType, x, y)
         else:
             print("ERROR: COMMAND NOT RECOGNISED")
         

@@ -12,36 +12,70 @@ Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
 
-    contexts.virus = new repast::SharedContext<Virus>(comm);
-
-    comms.virusProv = new VirusPackageProvider(contexts.virus);
-    comms.virusRec = new VirusPackageReceiver(contexts.virus);
-
     lifetime = stoi(props->getProperty("lifetime"));
     countOfAgents = stoi(props->getProperty("agentCount"));
+    cellCount = stoi(props->getProperty("cellCount"));
 
-    double areaSize = 200.0;
-    repast::Point<double> origin(-areaSize / 2.0, -areaSize / 2.0);
-    repast::Point<double> extent(areaSize, areaSize);
+    // Contexts
+    contexts.virus = new repast::SharedContext<Virus>(comm);
+    contexts.cell = new repast::SharedContext<Cell>(comm);
 
-    repast::GridDimensions gd(origin, extent);
+    // Comms
+    comms.virusProv = new VirusPackageProvider(contexts.virus);
+    comms.virusRec = new VirusPackageReceiver(contexts.virus);
+    comms.cellProv = new CellPackageProvider(contexts.cell);
+    comms.cellRec = new CellPackageReceiver(contexts.cell);
 
     std::vector<int> processDims;
     processDims.push_back(2);
     processDims.push_back(2);
 
-    spaces.virusCont =
-        new repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                          repast::SimpleAdder<Virus>>(
-            "AgentContinuousSpace", gd, processDims, 0, comm);
+    double virusAreaSize = 200;
 
-    spaces.virusDisc =
-        new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                        repast::SimpleAdder<Virus>>(
-            "AgentDiscreteSpace", gd, processDims, 2, comm);
+    repast::Point<double> vOrigin(0, 0);
+    repast::Point<double> vExtent(virusAreaSize, virusAreaSize);
 
-    contexts.virus->addProjection(spaces.virusCont);
-    contexts.virus->addProjection(spaces.virusDisc);
+    repast::Point<double> cOrigin(0, 0);
+    repast::Point<double> cExtent(cellCount, cellCount);
+
+    spaceTrans = SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent);
+
+    // Virus spaces
+    {
+        repast::GridDimensions gd(vOrigin, vExtent);
+
+        spaces.virusCont =
+            new repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                              repast::SimpleAdder<Virus>>(
+                "AgentContinuousSpace", gd, processDims, 0, comm);
+
+        spaces.virusDisc =
+            new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                            repast::SimpleAdder<Virus>>(
+                "AgentDiscreteSpace", gd, processDims, 2, comm);
+        contexts.virus->addProjection(spaces.virusCont);
+        contexts.virus->addProjection(spaces.virusDisc);
+    }
+
+    // Cell Space
+    {
+        if ((double)cellCount / processDims[0] !=
+                (int)(cellCount / processDims[0]) ||
+            (double)cellCount / processDims[1] !=
+                (int)(cellCount / processDims[1])) {
+            cout << "Cell count must be a multiple of the processor dims"
+                 << std::endl;
+        }
+
+        repast::GridDimensions gd(cOrigin, cExtent);
+
+        spaces.cellDisc =
+            new repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
+                                            repast::SimpleAdder<Cell>>(
+                "CellDiscreteSpace", gd, processDims, 1, comm);
+
+        contexts.cell->addProjection(spaces.cellDisc);
+    }
 }
 
 void Model::init() {
@@ -54,41 +88,76 @@ void Model::init() {
     // Data collection
     // file to log agent positions to
     char* fileOutputName = (char*)malloc(128 * sizeof(char));
-    sprintf(fileOutputName, "output/virus_pos_data_%d.dat", rank);
-    virusPosDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
+    sprintf(fileOutputName, "output/sim_%d.dat", rank);
+    simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
+
+    dataCol = DataCollector(&simData, &simDataFile);
 
     // Add viruses to model
-    double spawnSize = 100.0;
+    double spawnSize = 199.0;
 
     for (int i = 0; i < countOfAgents; i++) {
-        double offsetX = randNum->nextDouble() * spawnSize - spawnSize / 2,
-               offsetY = randNum->nextDouble() * spawnSize - spawnSize / 2;
+        double offsetX = randNum->nextDouble() * spawnSize,
+               offsetY = randNum->nextDouble() * spawnSize;
         repast::Point<int> initialLocationDiscrete((int)offsetX, (int)offsetY);
         repast::Point<double> initialLocationContinuous(offsetX, offsetY);
-        repast::AgentId id(i, rank, 0);
+        repast::AgentId id(i, rank, agentTypeToInt(VirusType));
         id.currentRank(rank);
 
         Vector vel;
         vel.x = randNum->nextDouble() - 0.5;
         vel.y = randNum->nextDouble() - 0.5;
-        virusPosData << "created:" << id.id() << "|" << id.startingRank() << "|"
-                     << agentTypeToInt(VirusType) << std::endl;
+
         Virus* agent = new Virus(id, vel, 0);
+
         contexts.virus->addAgent(agent);
         spaces.virusDisc->moveTo(id, initialLocationDiscrete);
         spaces.virusCont->moveTo(id, initialLocationContinuous);
-        virusPosData << "setpos:" << id.id() << "|" << id.startingRank() << "|"
-                     << initialLocationContinuous[0] << "|"
-                     << initialLocationContinuous[1] << std::endl;
+
+        dataCol.newAgent(id);
+        dataCol.setPos(id, initialLocationContinuous.coords(), true);
     }
 
-    std::vector<Virus*> agents;
+    for (int i = 0; i < (cellCount * cellCount) / worldSize; i++) {
+        int indexOffset = rank * ((cellCount * cellCount) / worldSize);
+        repast::Point<int> pos((indexOffset + i) % cellCount, (indexOffset + i) / cellCount);
+        repast::AgentId id(i, rank, agentTypeToInt(CellType));
+        Cell* agent = new Cell(id, (i == 0) ? Healthy : Empty);
+        contexts.cell->addAgent(agent);
+        spaces.cellDisc->moveTo(id, pos);
+
+        repast::Point<double> vPos = spaceTrans.cellToVir(pos);
+        dataCol.newAgent(id);
+        dataCol.setPos(id, vPos.coords(), true);
+    }
 
     // Move randomly places agents into the correct processes
     balanceAgents();
+
+    // Move cells into correct processor
+    spaces.cellDisc->balance();
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeProjectionInfo<Cell, CellPackage, CellPackageProvider,
+                                    CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStates<CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(*comms.cellProv,
+                                                      *comms.cellRec);
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
+    runner.scheduleEvent(
+        1, 1,
+        repast::Schedule::FunctorPtr(
+            new repast::MethodFunctor<Model>(this, &Model::printTick)));
+
     runner.scheduleEvent(
         1, 1,
         repast::Schedule::FunctorPtr(
@@ -106,7 +175,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
     runner.scheduleEvent(
         1, 5,
         repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<Model>(this, &Model::writeVirusData)));
+            new repast::MethodFunctor<DataCollector>(&this->dataCol, &DataCollector::writeData)));
 
     // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
@@ -177,11 +246,11 @@ void Model::collectVirusData() {
     double tick =
         repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-    virusPosData << "tick:" << tick << std::endl;
+    simData << "tick:" << tick << std::endl;
 
     //  Array of tuples
     //  Tuple is id, start rank, is in this proc, x, y
-    std::vector<std::tuple<int, int, double, double>> out;
+    std::vector<std::tuple<repast::AgentId, double, double>> out;
 
     // If there are any viruses to log data for
     if (contexts.virus->size() != 0) {
@@ -194,24 +263,24 @@ void Model::collectVirusData() {
             std::vector<double> loc;
             spaces.virusCont->getLocation(a->getId(), loc);
 
-            out.push_back(std::make_tuple(
-                a->getId().id(), a->getId().startingRank(), loc[0], loc[1]));
+            out.push_back(std::make_tuple(a->getId(), loc[0], loc[1]));
 
             it++;
         }
     }
 
-    virusPosData << "setpos:";
-    std::tuple<int, int, double, double> entry;
+    simData << "setpos:";
+    std::tuple<repast::AgentId, double, double> entry;
     for (long unsigned int i = 0; i < out.size(); i++) {
         entry = out[i];
-        virusPosData << std::get<0>(entry) << "|" << std::get<1>(entry) << "|"
-                     << std::get<2>(entry) << "|" << std::get<3>(entry) << ",";
-    }
-    virusPosData << std::endl;
-}
+        std::vector<double> loc;
+        loc.push_back(std::get<1>(entry));
+        loc.push_back(std::get<2>(entry));
 
-void Model::writeVirusData() { virusPosDataFile << virusPosData.rdbuf(); }
+        dataCol.setPos(std::get<0>(entry), loc, false);
+    }
+    simData << std::endl;
+}
 
 void Model::printAgentCounters() {
     repast::RepastProcess::instance()
@@ -230,4 +299,12 @@ void Model::printAgentCounters() {
                   << (*it)->testCounter << std::endl;
         it++;
     }
+}
+
+void Model::printTick() {
+    repast::RepastProcess* inst = repast::RepastProcess::instance();
+    if (inst->rank() != 0) {
+        return;
+    }
+    cout << "tick: " << inst->getScheduleRunner().currentTick() << std::endl;
 }
