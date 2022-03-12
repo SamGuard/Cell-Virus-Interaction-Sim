@@ -120,7 +120,8 @@ void Model::init() {
 
     for (int i = 0; i < (cellCount * cellCount) / worldSize; i++) {
         int indexOffset = rank * ((cellCount * cellCount) / worldSize);
-        repast::Point<int> pos((indexOffset + i) % cellCount, (indexOffset + i) / cellCount);
+        repast::Point<int> pos((indexOffset + i) % cellCount,
+                               (indexOffset + i) / cellCount);
         repast::AgentId id(i, rank, agentTypeToInt(CellType));
         Cell* agent = new Cell(id, (i == 0) ? Healthy : Empty);
         contexts.cell->addAgent(agent);
@@ -129,30 +130,22 @@ void Model::init() {
         repast::Point<double> vPos = spaceTrans.cellToVir(pos);
         dataCol.newAgent(id);
         dataCol.setPos(id, vPos.coords(), true);
+        dataCol.setState(id, agent->getState(), true);
     }
+
+    simData << "sortlayers:" << std::endl;
 
     // Move randomly places agents into the correct processes
     balanceAgents();
-
-    // Move cells into correct processor
-    spaces.cellDisc->balance();
-    repast::RepastProcess::instance()
-        ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
-                                 CellPackageReceiver>(
-            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
-
-    repast::RepastProcess::instance()
-        ->synchronizeProjectionInfo<Cell, CellPackage, CellPackageProvider,
-                                    CellPackageReceiver>(
-            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
-
-    repast::RepastProcess::instance()
-        ->synchronizeAgentStates<CellPackage, CellPackageProvider,
-                                 CellPackageReceiver>(*comms.cellProv,
-                                                      *comms.cellRec);
 }
 
 void Model::initSchedule(repast::ScheduleRunner& runner) {
+    // Output tick every tick
+    runner.scheduleEvent(
+        1, 1,
+        repast::Schedule::FunctorPtr(
+            new repast::MethodFunctor<Model>(this, &Model::outputTick)));
+
     runner.scheduleEvent(
         1, 1,
         repast::Schedule::FunctorPtr(
@@ -172,14 +165,24 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         1, 1,
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::collectVirusData)));
+
+    runner.scheduleEvent(
+        1, 1,
+        repast::Schedule::FunctorPtr(
+            new repast::MethodFunctor<Model>(this, &Model::collectCellData)));
+
     runner.scheduleEvent(
         1, 5,
-        repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<DataCollector>(&this->dataCol, &DataCollector::writeData)));
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<DataCollector>(
+            &this->dataCol, &DataCollector::writeData)));
 
     // End of life events
     runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
         new repast::MethodFunctor<Model>(this, &Model::printAgentCounters)));
+
+    runner.scheduleEndEvent(
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<DataCollector>(
+            &this->dataCol, &DataCollector::writeData)));
 
     runner.scheduleStop(lifetime);
 }
@@ -203,6 +206,23 @@ void Model::balanceAgents() {
         ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
                                  VirusPackageReceiver>(*comms.virusProv,
                                                        *comms.virusRec);
+
+    // Move cells into correct processor
+    spaces.cellDisc->balance();
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeProjectionInfo<Cell, CellPackage, CellPackageProvider,
+                                    CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStates<CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(*comms.cellProv,
+                                                      *comms.cellRec);
 }
 
 void Model::move() {
@@ -227,30 +247,46 @@ void Model::move() {
 }
 
 void Model::interact() {
-    std::vector<Virus*> agents;
-    std::vector<double> loc;
-
-    if (contexts.virus->size() == 0) {
-        return;
+    // Virus
+    {
+        std::vector<Virus*> agents;
+        if (contexts.virus->size() == 0) {
+            return;
+        }
+        contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL,
+                                     agents);
+        std::vector<Virus*>::iterator it = agents.begin();
+        while (it != agents.end()) {
+            (*it)->interact(contexts.virus, spaces.virusDisc, spaces.virusCont);
+            it++;
+        }
     }
 
-    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents);
-    std::vector<Virus*>::iterator it = agents.begin();
-    while (it != agents.end()) {
-        (*it)->interact(contexts.virus, spaces.virusDisc, spaces.virusCont);
-        it++;
+    // Cell
+    {
+        std::vector<Cell*> agents;
+        if (contexts.virus->size() == 0) {
+            return;
+        }
+        contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
+        std::vector<Cell*>::iterator it = agents.begin();
+        while (it != agents.end()) {
+            (*it)->interact(contexts.cell, spaces.cellDisc);
+            it++;
+        }
+
+        it = agents.begin();
+        while (it != agents.end()) {
+            (*it)->goNextState();
+            it++;
+        }
     }
 }
 
 void Model::collectVirusData() {
-    double tick =
-        repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-
-    simData << "tick:" << tick << std::endl;
-
     //  Array of tuples
-    //  Tuple is id, start rank, is in this proc, x, y
-    std::vector<std::tuple<repast::AgentId, double, double>> out;
+    //  Tuple is id, start rank, is in this proc, x, y and state
+    std::vector<std::tuple<repast::AgentId, double, double, int>> out;
 
     // If there are any viruses to log data for
     if (contexts.virus->size() != 0) {
@@ -263,14 +299,14 @@ void Model::collectVirusData() {
             std::vector<double> loc;
             spaces.virusCont->getLocation(a->getId(), loc);
 
-            out.push_back(std::make_tuple(a->getId(), loc[0], loc[1]));
+            out.push_back(std::make_tuple(a->getId(), loc[0], loc[1], 1));
 
             it++;
         }
     }
 
     simData << "setpos:";
-    std::tuple<repast::AgentId, double, double> entry;
+    std::tuple<repast::AgentId, double, double, int> entry;
     for (long unsigned int i = 0; i < out.size(); i++) {
         entry = out[i];
         std::vector<double> loc;
@@ -280,18 +316,52 @@ void Model::collectVirusData() {
         dataCol.setPos(std::get<0>(entry), loc, false);
     }
     simData << std::endl;
+
+    /*
+    simData << "setstate:";
+
+    for (long unsigned int i = 0; i < out.size(); i++) {
+        entry = out[i];
+        dataCol.setState(std::get<0>(entry), std::get<3>(entry), false);
+    }
+
+    simData << std::endl;
+    */
+}
+
+void Model::collectCellData() {
+    //  Array of tuples
+    //  Tuple is id and agent state
+    std::vector<std::tuple<repast::AgentId, int>> out;
+
+    if (contexts.cell->size() != 0) {
+        std::vector<Cell*> agents;
+        contexts.cell->selectAgents(agents, false);
+        std::vector<Cell*>::iterator it = agents.begin();
+        // Iterate threw and get the location of them all
+        while (it != agents.end()) {
+            Cell* a = (*it);
+            out.push_back(std::make_tuple(a->getId(), a->getState()));
+            it++;
+        }
+    }
+
+    simData << "setstate:";
+    std::tuple<repast::AgentId, int> entry;
+    for (long unsigned int i = 0; i < out.size(); i++) {
+        entry = out[i];
+        dataCol.setState(std::get<0>(entry), std::get<1>(entry), false);
+    }
+
+    simData << std::endl;
 }
 
 void Model::printAgentCounters() {
-    repast::RepastProcess::instance()
-        ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*comms.virusProv,
-                                                       *comms.virusRec);
     if (repast::RepastProcess::instance()->rank() != 0) {
         return;
     }
     std::vector<Virus*> agents;
-    contexts.virus->selectAgents(countOfAgents, agents);
+    contexts.virus->selectAgents(agents, false);
 
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
@@ -299,6 +369,13 @@ void Model::printAgentCounters() {
                   << (*it)->testCounter << std::endl;
         it++;
     }
+}
+
+void Model::outputTick() {
+    simData
+        << "tick:"
+        << repast::RepastProcess::instance()->getScheduleRunner().currentTick()
+        << std::endl;
 }
 
 void Model::printTick() {

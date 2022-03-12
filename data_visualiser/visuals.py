@@ -1,6 +1,6 @@
 from io import TextIOWrapper
-import tkinter
 from typing import Dict, List
+from warnings import catch_warnings
 from graphics import *
 import time
 import cProfile
@@ -8,9 +8,19 @@ from PIL import Image
 
 import tkinter as tk
 
+#States
+STATE_DEAD = 0
+STATE_HEALTHY = 1
+STATE_INFECTED = 2
+STATE_EMPTY = 3
+
+
+
 
 WIDTH = HEIGHT = 600
 NUM_PROCESSORS = 4
+CELL_SIZE = WIDTH / 200
+MAX_LAYERS = 2
 global _root
 win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
 
@@ -35,28 +45,83 @@ def applyTransforms(x, y):
 
 
 class Agent:
-    def __init__(this, id: str, t: int, x: float, y: float):
-        this.shape = Oval(Point(0, 0), Point(5, 5))
-        this.shape.move(x, y)
-        this.shape.setFill("black")
-        this.shape.draw(win)
+    def __init__(this, id: str):
+        this.shape = None
         this.id = id
-        this.t = t  # type
+        this.state = STATE_HEALTHY
+        this.layer = 0
 
     def move(this, x, y):
         cPoint = this.shape.getP2()
         cPos = [cPoint.getX(), cPoint.getY()]
         this.shape.move(x - cPos[0], y - cPos[1])
 
-
-class Virus(Agent):
-    def __init__(this, id: str, t: int, x: float, y: float):
-        this.shape = Rectangle(Point(0, 0), Point(5, 5))
+    def initGraphics(this, x: float, y: float):
+        this.shape = Oval(Point(0, 0), Point(5, 5))
         this.shape.move(x, y)
         this.shape.setFill("black")
         this.shape.draw(win)
-        this.id = id
-        this.t = t  # type
+    
+    def setState(this, state: int):
+        this.state: int = state
+
+    def update(this):
+        pass
+
+
+
+
+
+
+
+class Virus(Agent):
+    
+    def initGraphics(this, x: float, y: float):
+        this.shape = Oval(Point(0, 0), Point(5, 5))
+        this.shape.move(x, y)
+        this.shape.setFill("red")
+        this.shape.draw(win)
+        this.layer = 1
+    
+    def update(this):
+        if(this.state == STATE_HEALTHY):
+            this.shape.setFill("red")
+        else:
+            print("Invalid virus state")
+
+
+class Cell(Agent):    
+    def move(this, x, y):
+        x = x + CELL_SIZE / 2
+        y = y + CELL_SIZE / 2
+        cPoint = this.shape.getP2()
+        cPos = [cPoint.getX(), cPoint.getY()]
+        this.shape.move(x - cPos[0], y - cPos[1])
+
+    def initGraphics(this, x: float, y: float):
+        this.shape = Rectangle(Point(0, 0), Point(CELL_SIZE, CELL_SIZE))
+        this.shape.move(x, y)
+        this.shape.setOutline("white")
+        this.shape.draw(win)
+        this.layer = 0
+
+    
+    def update(this):
+        if(this.state == STATE_EMPTY):
+            this.shape.setFill("white")
+            this.shape.setOutline("white")
+        elif(this.state == STATE_HEALTHY):
+            this.shape.setFill("green")
+            this.shape.setOutline("green")
+        elif(this.state == STATE_INFECTED):
+            this.shape.setFill("purple")
+            this.shape.setOutline("purple")
+        elif(this.state == STATE_DEAD):
+            this.shape.setFill("grey")
+            this.shape.setOutline("grey")
+        else:
+            print("Invalid virus state", this.state)
+    
 
 
 startTime = 0
@@ -99,6 +164,7 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
         if command == "tick":
             if(currentRead == NUM_PROCESSORS - 1):
                 update()
+                #time.sleep(1)
                 saveImage(tickCount)
                 tickCount += 1
                 print("tick ", tickCount)
@@ -107,17 +173,49 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
             
         elif command == "setpos":
             # print(list(agents))
-            for locUpdate in payload.split(","):
-                if len(locUpdate) == 0:
+            for entry in payload.split(","):
+                if len(entry) == 0:
                     break
-                [partID, startR, agentType, x, y] = locUpdate.split("|")
+                [partID, startR, agentType, x, y] = entry.split("|")
                 [x, y] = applyTransforms(float(x), float(y))
                 id = partID + "|" + startR + "|" + agentType
                 agents[id].move(x, y)
+        elif command == "setstate":
+            for entry in payload.split(","):
+                if len(entry) == 0:
+                    break
+                [partID, startR, agentType, s] = entry.split("|")
+                id = partID + "|" + startR + "|" + agentType
+                agents[id].setState(int(s))
+                agents[id].update()
+
         elif command == "created":
             [_, _, agentType] = payload.split("|")
             [x, y] = applyTransforms(0, 0)
-            agents[payload] = Agent(payload, agentType, x, y)
+            agentType = int(agentType)
+            agent = None
+            if agentType == 1:
+                agent = Virus(payload)
+            elif agentType == 2:
+                agent = Cell(payload)
+            else:
+                print("INVALID AGENT TYPE", agentType)
+            
+            agent.initGraphics(x, y)
+            agent.update()
+            agents[payload] = agent
+        elif command == "sortlayers":
+            keyList = list(agents.keys())
+            for l in range(MAX_LAYERS):
+                for key in keyList:
+                    a: Agent = agents[key]
+                    if(a.layer > l):
+                        a.shape.undraw()
+                    elif(a.layer == l):
+                        try:
+                            a.shape.draw(win)
+                        except:
+                            pass
         else:
             print("ERROR: COMMAND NOT RECOGNISED")
         

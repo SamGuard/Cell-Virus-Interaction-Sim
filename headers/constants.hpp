@@ -6,7 +6,7 @@
 enum AgentType {BaseAgentType, VirusType, CellType};
 
 // Biology Constants
-#define CELL_CHANCE_DEATH_OVERCROWD 0.05
+#define CELL_CHANCE_DEATH_OVERCROWD 0.01
 
 
 // Convert to an int for data logging

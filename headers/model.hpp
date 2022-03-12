@@ -113,6 +113,7 @@ class Model {
     void interact();
     void collectVirusData();
     void collectCellData();
+    void outputTick();
     void printTick();
     void printAgentCounters();
 };

@@ -4,16 +4,17 @@
 #include "agentbase.hpp"
 #include "repast_hpc/VN2DGridQuery.h"
 
-enum CellState { Healthy, Infected, Dead, Empty };
+enum CellState { Dead, Healthy, Infected, Empty };
 
 class Cell : public AgentBase {
     CellState state;
+    CellState nextState;
 
    public:
     Cell() : AgentBase() { agentType = CellType; }
     Cell(repast::AgentId id, CellState state) : AgentBase() {
         agentType = CellType;
-        this->state = state;
+        this->state = this->nextState = state;
         this->id = id;
     }
 
@@ -24,7 +25,9 @@ class Cell : public AgentBase {
 
     CellState getState() { return state; }
 
-    void setState(CellState state) { this->state = state; }
+    void setState(CellState state) { this->state = this->nextState = state; }
+    void setNextState(CellState state) { this->nextState = state; }
+    void goNextState() { this->state = this->nextState; }
 
     void interact(
         repast::SharedContext<Cell>* context,
