@@ -1,19 +1,13 @@
 include ./env
 
-build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o ./objects/constants.o
+build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS)
 
-build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/data_collectors.o ./objects/cell.o ./objects/constants.o
+build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
-
-./objects/constants.o: ./source/constants.cpp
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/constants.cpp -o ./objects/constants.o $(COMP_FLAGS)
 
 ./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./source/cell.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o $(COMP_FLAGS)
-
-#./objects/data_collector.o: ./headers/constants.hpp ./source/data_collectors.cpp
-#	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/data_collectors.cpp -o ./objects/data_collectors.o $(COMP_FLAGS)
 
 ./objects/virus.o: ./headers/constants.hpp ./headers/agentbase.hpp ./source/virus.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/virus.cpp -o ./objects/virus.o $(COMP_FLAGS)

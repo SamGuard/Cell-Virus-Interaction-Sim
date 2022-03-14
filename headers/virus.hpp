@@ -4,12 +4,15 @@
 #include <stdlib.h>
 
 #include "agentbase.hpp"
+#include "cell.hpp"
 #include "constants.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
+
+class Cell;
 
 class Virus : public AgentBase {
    public:
@@ -32,6 +35,7 @@ class Virus : public AgentBase {
         this->vel = vel;
         this->testCounter = testCounter;
     }
+
     // This is where interactions that change the state of agents take place
     void interact(
         repast::SharedContext<Virus>* context,

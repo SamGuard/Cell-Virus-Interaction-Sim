@@ -46,43 +46,6 @@ struct AgentComm {
     CellPackageReceiver* cellRec;
 };
 
-class SpaceTranslator {
-    std::vector<double> cellVirOffset;
-    std::vector<double> cellVirScale;
-
-   public:
-    SpaceTranslator() {}
-    SpaceTranslator(repast::Point<double> virOrigin,
-                    repast::Point<double> virExtent,
-                    repast::Point<double> cellOrigin,
-                    repast::Point<double> cellExtent) {
-        cellVirOffset = std::vector<double>();
-        cellVirScale = std::vector<double>();
-
-        cellVirOffset.push_back(virOrigin[0] - cellOrigin[0]);
-        cellVirOffset.push_back(virOrigin[1] - cellOrigin[1]);
-
-        cellVirScale.push_back(virExtent[0] / (double)cellExtent[0]);
-        cellVirScale.push_back(virExtent[1] / (double)cellExtent[1]);
-    }
-
-    repast::Point<int> virToCell(repast::Point<double> in) {
-        repast::Point<int> out(
-            (in[0] - cellVirOffset[0]) / cellVirScale[0] - 0.5,
-            (in[1] - cellVirOffset[1]) / cellVirScale[1] - 0.5);
-
-        return out;
-    }
-
-    repast::Point<double> cellToVir(repast::Point<int> in) {
-        repast::Point<double> out(
-            ((double)in[0] + 0.5) * cellVirScale[0] + cellVirOffset[0],
-            ((double)in[1] + 0.5) * cellVirScale[1] + cellVirOffset[1]);
-
-        return out;
-    }
-};
-
 class Model {
    public:
     Model(std::string propsFile, int argc, char** argv,
@@ -97,7 +60,6 @@ class Model {
     AgentContexts contexts;
     AgentSpaces spaces;
     AgentComm comms;
-    SpaceTranslator spaceTrans;
 
     DataCollector dataCol;
     std::stringstream simData;
@@ -108,6 +70,8 @@ class Model {
     void init();
     void initSchedule(repast::ScheduleRunner& runner);
     void balanceAgents();
+
+    void addVirus(repast::Point<double> loc);
 
     void move();
     void interact();

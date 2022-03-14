@@ -47,29 +47,27 @@ void VirusPackageReceiver::updateAgent(VirusPackage package) {
 
 // Cell ----------------------------------------------------------------
 
-CellPackageProvider::CellPackageProvider(
-    repast::SharedContext<Cell>* agentPtr)
+CellPackageProvider::CellPackageProvider(repast::SharedContext<Cell>* agentPtr)
     : agents(agentPtr) {}
 
 void CellPackageProvider::providePackage(Cell* agent,
-                                          std::vector<CellPackage>& out) {
+                                         std::vector<CellPackage>& out) {
     repast::AgentId id = agent->getId();
     CellPackage package(id.id(), id.startingRank(), id.agentType(),
-                         id.currentRank(),
-                         agent->getState(), agent->hasStateChanged);
+                        id.currentRank(), agent->getState(),
+                        agent->getNextState(), agent->hasStateChanged);
     out.push_back(package);
 }
 
 void CellPackageProvider::provideContent(repast::AgentRequest req,
-                                          std::vector<CellPackage>& out) {
+                                         std::vector<CellPackage>& out) {
     std::vector<repast::AgentId> ids = req.requestedAgents();
     for (size_t i = 0; i < ids.size(); i++) {
         providePackage(agents->getAgent(ids[i]), out);
     }
 }
 
-CellPackageReceiver::CellPackageReceiver(
-    repast::SharedContext<Cell>* agentPtr)
+CellPackageReceiver::CellPackageReceiver(repast::SharedContext<Cell>* agentPtr)
     : agents(agentPtr) {}
 
 Cell* CellPackageReceiver::createAgent(CellPackage package) {
@@ -83,5 +81,5 @@ void CellPackageReceiver::updateAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type);
     Cell* agent = agents->getAgent(id);
 
-    agent->set(id, package.state, package.hasStateChanged);
+    agent->set(id, package.state, package.nextState, package.hasStateChanged);
 }

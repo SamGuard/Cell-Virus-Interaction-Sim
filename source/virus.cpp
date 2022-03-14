@@ -1,4 +1,5 @@
 #include "virus.hpp"
+#include "cell.hpp"
 
 #include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"

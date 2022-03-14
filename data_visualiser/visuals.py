@@ -114,8 +114,8 @@ class Cell(Agent):
             this.shape.setFill("green")
             this.shape.setOutline("green")
         elif(this.state == STATE_INFECTED):
-            this.shape.setFill("purple")
-            this.shape.setOutline("purple")
+            this.shape.setFill("red")
+            this.shape.setOutline("red")
         elif(this.state == STATE_DEAD):
             this.shape.setFill("grey")
             this.shape.setOutline("grey")

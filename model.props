@@ -2,3 +2,4 @@
 lifetime = 100
 agentCount = 100
 cellCount = 100
+cellDeathChanceOvercrowding = 0.001

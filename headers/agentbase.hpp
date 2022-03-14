@@ -41,8 +41,8 @@ class AgentBase {
         this->id = id;
         this->vel = vel;
     }
-    // This is where interactions that change the state of agents take place
 
+    // This is where interactions that change the state of agents take place
     virtual void interact(
         repast::SharedContext<AgentBase>* context,
         repast::SharedDiscreteSpace<AgentBase, repast::StrictBorders,
