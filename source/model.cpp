@@ -16,10 +16,6 @@ Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
 
-    lifetime = stoi(props->getProperty("lifetime"));
-    countOfAgents = stoi(props->getProperty("agentCount"));
-    cellCount = stoi(props->getProperty("cellCount"));
-
     // Contexts
     contexts.virus = new repast::SharedContext<Virus>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
@@ -30,9 +26,16 @@ Model::Model(std::string propsFile, int argc, char** argv,
     comms.cellProv = new CellPackageProvider(contexts.cell);
     comms.cellRec = new CellPackageReceiver(contexts.cell);
 
+    // Define simulation parameters
+    lifetime = stoi(props->getProperty("lifetime"));
+    virusCount = stoi(props->getProperty("virusCount"));
+    cellCount = stoi(props->getProperty("cellCount"));
+    cellDeathChanceOvercrowding =
+        std::stold(props->getProperty("cellDeathChanceOvercrowding"));
+
     std::vector<int> processDims;
-    processDims.push_back(2);
-    processDims.push_back(2);
+    processDims.push_back(4);
+    processDims.push_back(4);
 
     double virusAreaSize = 200;
 
@@ -89,10 +92,6 @@ void Model::init() {
     // randNum->initialize(std::time(NULL));
     randNum->initialize(27);
 
-    // Define simulation parameters
-    cellDeathChanceOvercrowding =
-        std::stold(props->getProperty("cellDeathChanceOvercrowding"));
-
     // Data collection
     // file to log agent positions to
     char* fileOutputName = (char*)malloc(128 * sizeof(char));
@@ -101,15 +100,22 @@ void Model::init() {
 
     dataCol = DataCollector(&simData, &simDataFile);
 
-    // Add viruses to model
-    double spawnSize = 199.0;
-    virusIdCount = 0;
-    for (int i = 0; i < countOfAgents; i++) {
-        double offsetX = randNum->nextDouble() * spawnSize,
-               offsetY = randNum->nextDouble() * spawnSize;
-        addVirus(repast::Point<double>(offsetX, offsetY));
+    {
+        // Add viruses to model
+        double spawnOriginX = spaces.virusCont->dimensions().origin().getX(),
+               spawnOriginY = spaces.virusCont->dimensions().origin().getY();
+
+        double spawnSizeX = spaces.virusCont->dimensions().extents().getX(),
+               spawnSizeY = spaces.virusCont->dimensions().extents().getX();
+        virusIdCount = 0;
+        for (int i = 0; i < virusCount; i++) {
+            double offsetX = spawnOriginX + randNum->nextDouble() * spawnSizeX,
+                   offsetY = spawnOriginY + randNum->nextDouble() * spawnSizeY;
+            addVirus(repast::Point<double>(offsetX, offsetY));
+        }
     }
 
+    /*
     for (int i = 0; i < (cellCount * cellCount) / worldSize; i++) {
         int indexOffset = rank * ((cellCount * cellCount) / worldSize);
         repast::Point<int> pos((indexOffset + i) % cellCount,
@@ -125,7 +131,36 @@ void Model::init() {
         dataCol.setPos(id, vPos.coords(), true);
         dataCol.setState(id, agent->getState(), true);
     }
+    */
+    {
+        int originX = (int)spaces.cellDisc->dimensions().origin().getX(),
+            originY = (int)spaces.cellDisc->dimensions().origin().getY();
 
+        int extentX = (int)spaces.cellDisc->dimensions().extents().getX(),
+            extentY = (int)spaces.cellDisc->dimensions().extents().getY();
+
+        for (int x = 0; x < extentX; x++) {
+            for (int y = 0; y < extentY; y++) {
+                if (repast::RepastProcess::instance()->rank() == 0) {
+                    cout << originX + x << " " << originY + y << std::endl;
+                }
+
+                repast::Point<int> pos =
+                    repast::Point<int>(originX + x, originY + y);
+                repast::AgentId id(x + y * extentX, rank,
+                                   agentTypeToInt(CellType));
+                Cell* agent = new Cell(id, Healthy);
+
+                contexts.cell->addAgent(agent);
+                spaces.cellDisc->moveTo(id, pos);
+
+                repast::Point<double> vPos = spaceTrans.cellToVir(pos);
+                dataCol.newAgent(id);
+                dataCol.setPos(id, vPos.coords(), true);
+                dataCol.setState(id, agent->getState(), true);
+            }
+        }
+    }
     simData << "sortlayers:" << std::endl;
 
     // Move randomly places agents into the correct processes
@@ -199,23 +234,26 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 
 void Model::balanceAgents() {
     // Virus
-    spaces.virusDisc->balance();
-    repast::RepastProcess::instance()
-        ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec,
-            *comms.virusRec);
+    if (spaces.virusDisc->size() > 0) {
+        spaces.virusDisc->balance();
+        repast::RepastProcess::instance()
+            ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
+                                     VirusPackageReceiver>(
+                *contexts.virus, *comms.virusProv, *comms.virusRec,
+                *comms.virusRec);
 
-    repast::RepastProcess::instance()
-        ->synchronizeProjectionInfo<Virus, VirusPackage, VirusPackageProvider,
-                                    VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec,
-            *comms.virusRec);
+        repast::RepastProcess::instance()
+            ->synchronizeProjectionInfo<Virus, VirusPackage,
+                                        VirusPackageProvider,
+                                        VirusPackageReceiver>(
+                *contexts.virus, *comms.virusProv, *comms.virusRec,
+                *comms.virusRec);
 
-    repast::RepastProcess::instance()
-        ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*comms.virusProv,
-                                                       *comms.virusRec);
+        repast::RepastProcess::instance()
+            ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
+                                     VirusPackageReceiver>(*comms.virusProv,
+                                                           *comms.virusRec);
+    }
 }
 
 void Model::move() {

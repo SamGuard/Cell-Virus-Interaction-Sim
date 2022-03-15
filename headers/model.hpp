@@ -53,7 +53,7 @@ class Model {
 
     int rank, worldSize;
     unsigned int lifetime;
-    int countOfAgents, cellCount;
+    int virusCount, cellCount;
     std::string propsFile;
     repast::Properties* props;
 
