@@ -1,5 +1,6 @@
 /output/*
 /data_visualiser/images/*
+/docker_build/repast_hpc-2.3.1/
 
 
 *.pyc

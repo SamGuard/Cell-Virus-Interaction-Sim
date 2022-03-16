@@ -3,6 +3,8 @@ RUN apt update
 RUN yes | apt install g++ gcc make zlib1g-dev
 COPY ./repast_hpc-2.3.1/ /root/repast_hpc-2.3.1/
 WORKDIR /root/repast_hpc-2.3.1/MANUAL_INSTALL/
+RUN rm Makefile
+COPY Makefile .
 RUN ./install.sh curl
 RUN ./install.sh mpich
 ENV PATH=/root/sfw/MPICH/bin:$PATH
