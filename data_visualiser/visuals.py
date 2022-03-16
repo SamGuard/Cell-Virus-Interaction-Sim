@@ -17,8 +17,8 @@ STATE_EMPTY = 3
 
 
 
-WIDTH = HEIGHT = 600
-NUM_PROCESSORS = 16
+WIDTH = HEIGHT = 1281
+NUM_PROCESSORS = 4
 CELL_SIZE = WIDTH / 100
 MAX_LAYERS = 2
 global _root
@@ -67,11 +67,6 @@ class Agent:
 
     def update(this):
         pass
-
-
-
-
-
 
 
 class Virus(Agent):

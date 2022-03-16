@@ -32,7 +32,7 @@ clean: del_data
 	- rm ./bin/*
 
 run: del_data
-	mpirun -n 16 ./bin/main config.props model.props
+	mpirun -n 4 ./bin/main config.props model.props
 
 debug: del_data	
 		mpirun -np 4 xterm -e gdb --args ./bin/main config.props model.props
@@ -44,6 +44,6 @@ run_vis:
 
 movie:
 	cd ./data_visualiser/; \
-	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p output.mp4
+	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p output.mp4
 
 full: build run run_vis movie	

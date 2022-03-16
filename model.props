@@ -1,5 +1,5 @@
 #Properties file
-lifetime = 20
-virusCount = 4
+lifetime = 1000
+virusCount = 1
 cellCount = 100
 cellDeathChanceOvercrowding = 0.001
