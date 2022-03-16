@@ -19,4 +19,5 @@ COPY env env
 RUN mkdir objects; exit 0
 RUN mkdir bin; exit 0
 RUN mkdir outputs; exit 0
-CMD make full
+CMD git pull \ 
+  && make full

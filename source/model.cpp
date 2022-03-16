@@ -34,8 +34,8 @@ Model::Model(std::string propsFile, int argc, char** argv,
         std::stold(props->getProperty("cellDeathChanceOvercrowding"));
 
     std::vector<int> processDims;
-    processDims.push_back(2);
-    processDims.push_back(2);
+    processDims.push_back(4);
+    processDims.push_back(4);
 
     double virusAreaSize = 200;
 
