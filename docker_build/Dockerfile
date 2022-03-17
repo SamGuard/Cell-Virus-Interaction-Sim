@@ -24,4 +24,4 @@ RUN mkdir output; exit 0
 ENTRYPOINT ["tail", "-f", "/dev/null"]
 CMD git pull \ 
   && make build_opt \
-  && make run \
+  && make run
