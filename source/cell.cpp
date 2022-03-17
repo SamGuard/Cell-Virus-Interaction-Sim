@@ -49,7 +49,7 @@ void Cell::interact(
                 it++;
             }
 
-            if (rand->nextDouble() < (double)healthyC * 0.5) {
+            if (rand->nextDouble() < (double)healthyC * 0.25) {
                 setNextState(Healthy);
             }
         }

@@ -200,7 +200,12 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
             agent.update()
             agents[payload] = agent
         elif command == "kill":
-            agents.pop(payload)
+            try:
+                agents[payload].shape.undraw()
+                agents.pop(payload)
+            except:
+                pass
+
         elif command == "sortlayers":
             keyList = list(agents.keys())
             for l in range(MAX_LAYERS):

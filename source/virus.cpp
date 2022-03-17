@@ -25,7 +25,7 @@ void Virus::interact(
     while (agentToPlay != agentsToPlay.end()) {}
     */
    isAlive = true;
-   if(birthTick + 50 * 6 < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
+   if(birthTick + 100 * 6 < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
        isAlive = false;
    }
 }

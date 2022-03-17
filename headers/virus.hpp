@@ -22,7 +22,7 @@ class Virus : public AgentBase {
         this->agentType = VirusType;
     }
 
-    Virus(repast::AgentId id, Vector vel, double tick) : Virus(id, vel) {
+    Virus(repast::AgentId id, Vector vel, double birthTick) : Virus(id, vel) {
         this->agentType = VirusType;
         this->birthTick = birthTick;
     }

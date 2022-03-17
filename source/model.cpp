@@ -202,9 +202,6 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
             &this->dataCol, &DataCollector::writeData)));
 
     // End of life events
-    runner.scheduleEndEvent(repast::Schedule::FunctorPtr(
-        new repast::MethodFunctor<Model>(this, &Model::printAgentCounters)));
-
     runner.scheduleEndEvent(
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<DataCollector>(
             &this->dataCol, &DataCollector::writeData)));
@@ -293,16 +290,14 @@ void Model::interact() {
         std::vector<Virus*>::iterator it = killList.begin();
         while (it != killList.end()) {
             dataCol.killAgent((*it)->getId());
-            contexts.virus->removeAgent((*it));
+            contexts.virus->removeAgent(*it);
+            it++;
         }
     }
 
     // Cell
     {
         std::vector<Cell*> agents;
-        if (contexts.virus->size() == 0) {
-            return;
-        }
         contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
         std::vector<repast::Point<double>> virusToAdd;
         {
@@ -333,6 +328,7 @@ void Model::interact() {
             }
         }
     }
+    balanceAgents();
 }
 
 void Model::addVirus(repast::Point<double> loc) {
