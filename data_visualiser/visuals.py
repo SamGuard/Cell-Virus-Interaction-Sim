@@ -184,7 +184,7 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
                 agents[id].setState(int(s))
                 agents[id].update()
 
-        elif command == "created":
+        elif command == "create":
             [_, _, agentType] = payload.split("|")
             [x, y] = applyTransforms(0, 0)
             agentType = int(agentType)
@@ -199,6 +199,8 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
             agent.initGraphics(x, y)
             agent.update()
             agents[payload] = agent
+        elif command == "kill":
+            agents.pop(payload)
         elif command == "sortlayers":
             keyList = list(agents.keys())
             for l in range(MAX_LAYERS):

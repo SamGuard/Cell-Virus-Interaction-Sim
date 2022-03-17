@@ -16,53 +16,55 @@ class Cell;
 
 class Virus : public AgentBase {
    public:
-    unsigned int testCounter;
-
     Virus() : AgentBase() { agentType = VirusType; }
 
-    Virus(repast::AgentId id, Vector vel, int testCounter) : AgentBase(id, vel) {
-        this->testCounter = testCounter;
+    Virus(repast::AgentId id, Vector vel) : AgentBase(id, vel) {
         this->agentType = VirusType;
     }
 
+    Virus(repast::AgentId id, Vector vel, double tick) : Virus(id, vel) {
+        this->agentType = VirusType;
+        this->birthTick = birthTick;
+    }
+
     // Getter for agent specific attributes
-    Vector getVel() { return vel; }
-    int getTestCounter() { return testCounter; }
+    inline Vector getVel() { return vel; }
+    inline double getBirthTick() { return birthTick; }
 
-
-    void set(repast::AgentId id, Vector vel, int testCounter) {
+    void set(repast::AgentId id, Vector vel, double birthTick) {
         this->id = id;
         this->vel = vel;
-        this->testCounter = testCounter;
+        this->birthTick = birthTick;
     }
 
     // This is where interactions that change the state of agents take place
-    void interact(
-        repast::SharedContext<Virus>* context,
-        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                    repast::SimpleAdder<Virus>>* virusDiscreteSpace,
-        repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                      repast::SimpleAdder<Virus>>* virusContinSpace);
+    void interact(repast::SharedContext<Virus>* context,
+                  repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                              repast::SimpleAdder<Virus>>*
+                      virusDiscreteSpace,
+                  repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                                repast::SimpleAdder<Virus>>*
+                      virusContinSpace,
+                  bool& isAlive);
     // Moves the agent
-    void move(
-        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                    repast::SimpleAdder<Virus>>* virusDiscreteSpace,
-        repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                      repast::SimpleAdder<Virus>>* virusContinSpace);
-
-    void increment() { testCounter++; }
+    void move(repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                          repast::SimpleAdder<Virus>>*
+                  virusDiscreteSpace,
+              repast::SharedContinuousSpace<Virus, repast::StrictBorders,
+                                            repast::SimpleAdder<Virus>>*
+                  virusContinSpace);
 };
 
 /* Serializable Agent Package */
 struct VirusPackage {
    public:
-    int id, rank, type, currentRank, testCounter;
-    double velx, vely;
+    int id, rank, type, currentRank;
+    double velx, vely, birthTick;
 
     /* Constructors */
     VirusPackage();  // For serialization
     VirusPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
-                 double _vely, int _testCounter);
+                 double _vely, double _birthTick);
 
     /* For archive packaging */
     template <class Archive>
@@ -73,7 +75,7 @@ struct VirusPackage {
         ar& currentRank;
         ar& velx;
         ar& vely;
-        ar& testCounter;
+        ar& birthTick;
     }
 };
 

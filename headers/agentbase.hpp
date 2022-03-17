@@ -11,6 +11,9 @@
 #include "repast_hpc/SharedDiscreteSpace.h"
 
 class AgentBase {
+   protected:
+    double birthTick;
+
    public:
     Vector vel;
     repast::AgentId id;
@@ -26,6 +29,7 @@ class AgentBase {
         this->id = id;
         this->vel = vel;
         this->agentType = BaseAgentType;
+        this->birthTick = 0;
     }
 
     virtual ~AgentBase() {}

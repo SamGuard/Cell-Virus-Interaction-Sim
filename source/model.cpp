@@ -45,7 +45,8 @@ Model::Model(std::string propsFile, int argc, char** argv,
     repast::Point<double> cOrigin(0, 0);
     repast::Point<double> cExtent(cellCount, cellCount);
 
-    spaceTrans = SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent, virusAreaSize);
+    spaceTrans =
+        SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent, virusAreaSize);
 
     // Virus spaces
     {
@@ -275,10 +276,24 @@ void Model::interact() {
         std::vector<Virus*> agents;
         contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL,
                                      agents);
-        std::vector<Virus*>::iterator it = agents.begin();
-        while (it != agents.end()) {
-            (*it)->interact(contexts.virus, spaces.virusDisc, spaces.virusCont);
-            it++;
+        std::vector<Virus*> killList;
+        {
+            std::vector<Virus*>::iterator it = agents.begin();
+            while (it != agents.end()) {
+                bool isAlive = true;
+                (*it)->interact(contexts.virus, spaces.virusDisc,
+                                spaces.virusCont, isAlive);
+                if (!isAlive) {
+                    killList.push_back((*it));
+                }
+                it++;
+            }
+        }
+
+        std::vector<Virus*>::iterator it = killList.begin();
+        while (it != killList.end()) {
+            dataCol.killAgent((*it)->getId());
+            contexts.virus->removeAgent((*it));
         }
     }
 
@@ -331,7 +346,9 @@ void Model::addVirus(repast::Point<double> loc) {
     vel.x = randNum->nextDouble() - 0.5;
     vel.y = randNum->nextDouble() - 0.5;
 
-    Virus* agent = new Virus(id, vel, 0);
+    Virus* agent = new Virus(
+        id, vel,
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick());
 
     contexts.virus->addAgent(agent);
     spaces.virusCont->moveTo(id, loc);
@@ -427,8 +444,7 @@ void Model::printAgentCounters() {
 
     std::vector<Virus*>::iterator it = agents.begin();
     while (it != agents.end()) {
-        std::cout << "Agent " << (*it)->getId() << " Value "
-                  << (*it)->testCounter << std::endl;
+        std::cout << "Agent " << (*it)->getId() << " Value " << std::endl;
         it++;
     }
 }

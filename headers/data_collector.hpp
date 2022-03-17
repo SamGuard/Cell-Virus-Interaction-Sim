@@ -23,7 +23,12 @@ class DataCollector {
     }
 
     void newAgent(repast::AgentId id) {
-        *data << "created:" << id.id() << "|" << id.startingRank() << "|"
+        *data << "create:" << id.id() << "|" << id.startingRank() << "|"
+              << id.agentType() << std::endl;
+    }
+
+    void killAgent(repast::AgentId id){
+        *data << "kill:" << id.id() << "|" << id.startingRank() << "|"
               << id.agentType() << std::endl;
     }
 

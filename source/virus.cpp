@@ -1,6 +1,6 @@
 #include "virus.hpp"
-#include "cell.hpp"
 
+#include "cell.hpp"
 #include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"
 
@@ -10,9 +10,11 @@ void Virus::interact(
                                 repast::SimpleAdder<Virus>>* virusDiscreteSpace,
     repast::SharedContinuousSpace<Virus, repast::StrictBorders,
                                   repast::SimpleAdder<Virus>>*
-        virusContinSpace) {
-    std::vector<Virus*> agentsToPlay;
+        virusContinSpace, bool &isAlive) {
 
+    // Inter-virus interaction, not in use yet
+    /*
+    std::vector<Virus*> agentsToPlay;
     std::vector<int> agentLocDiscrete;
     virusDiscreteSpace->getLocation(id, agentLocDiscrete);
     repast::Point<int> center(agentLocDiscrete);
@@ -20,14 +22,12 @@ void Virus::interact(
     moore2DQuery.query(center, 0, true, agentsToPlay);
 
     std::vector<Virus*>::iterator agentToPlay = agentsToPlay.begin();
-    while (agentToPlay != agentsToPlay.end()) {
-        // std::cout << "Hi from " << id.id() << " Agent " <<
-        // (*agentToPlay)->id.id() << std::endl;
-        if ((*agentToPlay)->getId() != this->id) {
-            (*agentToPlay)->increment();
-        }
-        agentToPlay++;
-    }
+    while (agentToPlay != agentsToPlay.end()) {}
+    */
+   isAlive = true;
+   if(birthTick + 50 * 6 < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
+       isAlive = false;
+   }
 }
 
 void Virus::move(
@@ -65,11 +65,11 @@ void Virus::move(
 VirusPackage::VirusPackage() {}
 
 VirusPackage::VirusPackage(int _id, int _rank, int _type, int _currentRank,
-                           double _velx, double _vely, int _testCounter)
+                           double _velx, double _vely, double _birthTick)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
-      testCounter(_testCounter),
       velx(_velx),
-      vely(_vely) {}
+      vely(_vely),
+      birthTick(_birthTick) {}

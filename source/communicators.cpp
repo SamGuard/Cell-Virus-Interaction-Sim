@@ -11,7 +11,8 @@ void VirusPackageProvider::providePackage(Virus* agent,
     repast::AgentId id = agent->getId();
     VirusPackage package(id.id(), id.startingRank(), id.agentType(),
                          id.currentRank(), agent->getVel().x, agent->getVel().y,
-                         agent->getTestCounter());
+                         agent->getBirthTick());
+
     out.push_back(package);
 }
 
@@ -33,7 +34,7 @@ Virus* VirusPackageReceiver::createAgent(VirusPackage package) {
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    return new Virus(id, v, package.testCounter);
+    return new Virus(id, v, package.birthTick);
 }
 
 void VirusPackageReceiver::updateAgent(VirusPackage package) {
@@ -42,7 +43,7 @@ void VirusPackageReceiver::updateAgent(VirusPackage package) {
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    agent->set(id, v, package.testCounter);
+    agent->set(id, v, package.birthTick);
 }
 
 // Cell ----------------------------------------------------------------
@@ -74,7 +75,8 @@ Cell* CellPackageReceiver::createAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type,
                        package.currentRank);
 
-    return new Cell(id, package.state, package.nextState, package.hasStateChanged);
+    return new Cell(id, package.state, package.nextState,
+                    package.hasStateChanged);
 }
 
 void CellPackageReceiver::updateAgent(CellPackage package) {
