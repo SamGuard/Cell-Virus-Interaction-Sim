@@ -2,6 +2,7 @@
 #define CELL
 
 #include "agentbase.hpp"
+#include "repast_hpc/Schedule.h"
 #include "repast_hpc/VN2DGridQuery.h"
 #include "virus.hpp"
 
@@ -11,20 +12,26 @@ class Virus;
 
 class Cell : public AgentBase {
     CellState state;
-    CellState nextState;
+    
 
    public:
+   CellState nextState;
     bool hasStateChanged;  // Only output setstate if the state has changed
 
     Cell() : AgentBase() {
         agentType = CellType;
-        hasStateChanged = true;
+        hasStateChanged = false;
         this->state = this->nextState = Dead;
     }
     Cell(repast::AgentId id, CellState state) : Cell() {
         this->state = this->nextState = state;
         this->id = id;
         hasStateChanged = false;
+    }
+
+    Cell(repast::AgentId id, CellState state, CellState nextState, bool hasStateChanged) : Cell(id, state) {
+        this->nextState = nextState;
+        this->hasStateChanged = hasStateChanged;
     }
 
     void set(repast::AgentId id, CellState state, CellState nextState,
@@ -51,7 +58,7 @@ class Cell : public AgentBase {
                                     repast::SimpleAdder<Cell>>* cellSpace,
         repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                     repast::SimpleAdder<Virus>>* virusDiscSpace,
-        std::vector<repast::Point<double>> *out);
+        std::vector<repast::Point<double>>* out);
 };
 
 /* Serializable Agent Package */

@@ -74,7 +74,7 @@ Cell* CellPackageReceiver::createAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type,
                        package.currentRank);
 
-    return new Cell(id, package.state);
+    return new Cell(id, package.state, package.nextState, package.hasStateChanged);
 }
 
 void CellPackageReceiver::updateAgent(CellPackage package) {

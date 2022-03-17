@@ -47,6 +47,7 @@ struct AgentComm {
 };
 
 class Model {
+    const int tickCycleLen = 6;
    public:
     Model(std::string propsFile, int argc, char** argv,
           boost::mpi::communicator* comm);

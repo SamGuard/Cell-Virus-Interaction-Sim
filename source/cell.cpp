@@ -4,18 +4,18 @@
 
 void Cell::interact(
     repast::SharedContext<Cell>* cellContext,
-        repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
-                                    repast::SimpleAdder<Cell>>* cellSpace,
-        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                    repast::SimpleAdder<Virus>>* virusDiscSpace,
-        std::vector<repast::Point<double>> *out) {
-
+    repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
+                                repast::SimpleAdder<Cell>>* cellSpace,
+    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
+                                repast::SimpleAdder<Virus>>* virusDiscSpace,
+    std::vector<repast::Point<double>>* out) {
     setNextState(getState());
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
 
     if (getState() == Dead) {
         if (rand->nextDouble() < 0.05) {
+            cout << "Remove dead" << std::endl;
             setNextState(Empty);
         }
         return;
@@ -38,19 +38,21 @@ void Cell::interact(
             return;
         }
 
-        std::vector<Cell*>::iterator it = agents.begin();
-        Cell* c;
-        int healthyC = 0;
-        while (it != agents.end()) {
-            c = (*it);
-            if (c->getState() == Healthy) {
-                healthyC++;
+        if (getState() == Empty) {
+            std::vector<Cell*>::iterator it = agents.begin();
+            Cell* c;
+            int healthyC = 0;
+            while (it != agents.end()) {
+                c = (*it);
+                if (c->getState() == Healthy) {
+                    healthyC++;
+                }
+                it++;
             }
-            it++;
-        }
 
-        if (rand->nextDouble() < (double)healthyC * 0.5) {
-            setNextState(Healthy);
+            if (rand->nextDouble() < (double)healthyC * 0.5) {
+                setNextState(Healthy);
+            }
         }
     }
 
@@ -59,14 +61,24 @@ void Cell::interact(
         {
             repast::Point<int> p(loc[0], loc[1]);
             vLoc = spaceTrans.cellToVirDisc(p).coords();
+
+            if (false &&
+                repast::RepastProcess::instance()
+                        ->getScheduleRunner()
+                        .currentTick() < 10 &&
+                repast::RepastProcess::instance()->rank() == 0) {
+                cout << "From " << loc[0] << ", " << loc[1] << " To " << vLoc[0]
+                     << ", " << vLoc[1] << std::endl;
+            }
         }
 
         repast::VN2DGridQuery<Virus> gridQ(virusDiscSpace);
 
         std::vector<Virus*> agents;
-        gridQ.query(vLoc, 1, true, agents);
+        gridQ.query(vLoc, 0, true, agents);
 
         if (agents.size() >= 1) {
+            cout << "INFECTED " << getId() << std::endl;
             setNextState(Infected);
         }
     }
@@ -74,6 +86,7 @@ void Cell::interact(
     if (getState() == Infected) {
         if (rand->nextDouble() < 0.1) {
             out->push_back(spaceTrans.cellToVir(loc));
+            cout << "DEAD " << getId() << std::endl;
             setNextState(Dead);
             return;
         }

@@ -17,9 +17,9 @@ STATE_EMPTY = 3
 
 
 
-WIDTH = HEIGHT = 1281
+WIDTH = HEIGHT = 600
 NUM_PROCESSORS = 4
-CELL_SIZE = WIDTH / 100
+CELL_SIZE = WIDTH / 12
 MAX_LAYERS = 2
 global _root
 win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
