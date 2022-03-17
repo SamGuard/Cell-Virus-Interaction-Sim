@@ -21,7 +21,7 @@ COPY env env
 RUN mkdir objects; exit 0
 RUN mkdir bin; exit 0
 RUN mkdir output; exit 0
+ENTRYPOINT ["tail", "-f", "/dev/null"]
 CMD git pull \ 
   && make build_opt \
   && make run \
-  && scp -r 
