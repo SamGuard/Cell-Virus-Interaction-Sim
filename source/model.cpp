@@ -45,7 +45,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
     repast::Point<double> cOrigin(0, 0);
     repast::Point<double> cExtent(cellCount, cellCount);
 
-    spaceTrans = SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent);
+    spaceTrans = SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent, virusAreaSize);
 
     // Virus spaces
     {
@@ -128,7 +128,6 @@ void Model::init() {
                     repast::Point<int>(originX + x, originY + y);
                 repast::AgentId id(x + y * extentX, rank,
                                    agentTypeToInt(CellType));
-                if (rank == 0) cout << id << std::endl;
                 Cell* agent = new Cell(id, Healthy);
 
                 contexts.cell->addAgent(agent);
@@ -255,9 +254,6 @@ void Model::move() {
 }
 
 void Model::interact() {
-    if (repast::RepastProcess::instance()->rank() == 0) {
-        cout << "doing tick" << std::endl;
-    }
     spaces.cellDisc->balance();
     repast::RepastProcess::instance()
         ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
@@ -307,8 +303,6 @@ void Model::interact() {
             std::vector<repast::Point<double>>::iterator it =
                 virusToAdd.begin();
             while (it != virusToAdd.end()) {
-                cout << "ADD VIRUS " << (*it)[0] << " " << (*it)[1]
-                     << std::endl;
                 addVirus((*it));
                 it++;
             }
@@ -318,12 +312,6 @@ void Model::interact() {
             std::vector<Cell*>::iterator it = agents.begin();
             while (it != agents.end()) {
                 if ((*it)->hasStateChanged) {
-                    if (false &&
-                        repast::RepastProcess::instance()->rank() == 0) {
-                        cout << "Next State " << (*it)->getId() << " "
-                             << (*it)->getState() << "  " << (*it)->nextState
-                             << std::endl;
-                    }
                     (*it)->goNextState();
                 }
                 it++;

@@ -34,6 +34,7 @@ inline int agentTypeToInt(AgentType t) {
 class SpaceTranslator {
     std::vector<double> cellVirOffset;
     std::vector<double> cellVirScale;
+    double _cellSize;
 
    public:
     SpaceTranslator() {
@@ -42,11 +43,12 @@ class SpaceTranslator {
 
         cellVirScale.push_back(0);
         cellVirScale.push_back(0);
+        _cellSize = 0;
     }
     SpaceTranslator(repast::Point<double> virOrigin,
                     repast::Point<double> virExtent,
                     repast::Point<double> cellOrigin,
-                    repast::Point<double> cellExtent) {
+                    repast::Point<double> cellExtent, double areaSize) {
         cellVirOffset = std::vector<double>();
         cellVirScale = std::vector<double>();
 
@@ -55,6 +57,12 @@ class SpaceTranslator {
 
         cellVirScale.push_back(virExtent[0] / (double)cellExtent[0]);
         cellVirScale.push_back(virExtent[1] / (double)cellExtent[1]);
+
+        _cellSize = areaSize / cellExtent[0];
+    }
+
+    inline double cellSize(){
+        return _cellSize;
     }
 
     repast::Point<int> virToCell(repast::Point<double> in) {
@@ -73,10 +81,10 @@ class SpaceTranslator {
         return out;
     }
 
-    repast::Point<int> cellToVirDisc(repast::Point<int> in){
+    repast::Point<int> cellToVirDisc(repast::Point<int> in) {
         repast::Point<double> p = cellToVir(in);
 
-        repast::Point<int> out((int)p[0], (int) p[1]);
+        repast::Point<int> out((int)p[0], (int)p[1]);
         return out;
     }
 };
