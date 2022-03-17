@@ -4,7 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "~/sfw/**"
+                "~/sfw/repast_hpc-2.3.1/include/",
+                "~/sfw/boost-1_61_0/include/",
+                "~/sfw/MPICH/include/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin//gcc",
