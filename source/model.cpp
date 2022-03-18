@@ -12,10 +12,12 @@ unsigned long int virusIdCount;
 
 SpaceTranslator spaceTrans;
 
+double tickCycleLen;
+
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
-
+    tickCycleLen = 6;
     // Contexts
     contexts.virus = new repast::SharedContext<Virus>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
@@ -91,7 +93,7 @@ void Model::init() {
     worldSize = repast::RepastProcess::instance()->worldSize();
     repast::Random* randNum = repast::Random::instance();
     // randNum->initialize(std::time(NULL));
-    randNum->initialize(27);
+    randNum->initialize(27 + rank);
 
     // Data collection
     // file to log agent positions to

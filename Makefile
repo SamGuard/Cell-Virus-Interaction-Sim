@@ -6,16 +6,16 @@ build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/vi
 build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
 
-./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./source/cell.cpp
+./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./headers/cell.hpp ./source/cell.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o $(COMP_FLAGS)
 
-./objects/virus.o: ./headers/constants.hpp ./headers/agentbase.hpp ./source/virus.cpp
+./objects/virus.o: ./headers/constants.hpp ./headers/agentbase.hpp ./headers/virus.hpp ./source/virus.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/virus.cpp -o ./objects/virus.o $(COMP_FLAGS)
 
-./objects/communicators.o: ./headers/constants.hpp ./headers/virus.hpp ./headers/cell.hpp ./source/communicators.cpp
+./objects/communicators.o: ./headers/constants.hpp ./headers/virus.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o $(COMP_FLAGS)
 
-./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/cell.hpp ./source/model.cpp
+./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/model.cpp -o ./objects/model.o $(COMP_FLAGS)
 
 ./objects/main.o: ./headers/constants.hpp ./headers/model.hpp ./source/main.cpp 
@@ -32,7 +32,7 @@ clean: del_data
 	- rm ./bin/*
 
 run: del_data
-	mpirun -n 25 ./bin/main config.props model.props
+	mpirun -n 4 ./bin/main config.props model.props
 
 debug: del_data	
 		mpirun -np 4 xterm -e gdb --args ./bin/main config.props model.props

@@ -25,7 +25,8 @@ void Virus::interact(
     while (agentToPlay != agentsToPlay.end()) {}
     */
    isAlive = true;
-   if(birthTick + 100 * 6 < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
+   // birthTick + lifetime * tickCycleLen this is because each cycle of actions takes a number of ticks
+   if(birthTick + 100 * tickCycleLen < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
        isAlive = false;
    }
 }

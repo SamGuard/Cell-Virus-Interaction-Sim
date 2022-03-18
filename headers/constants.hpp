@@ -11,6 +11,8 @@ enum AgentType { BaseAgentType, VirusType, CellType };
 
 extern double cellDeathChanceOvercrowding;
 extern unsigned long int virusIdCount;
+extern double tickCycleLen;  // The amount of ticks for one full cycle of every
+                          // action ( this is to give order to action)
 
 struct Vector {
     double x, y;
@@ -61,9 +63,7 @@ class SpaceTranslator {
         _cellSize = areaSize / cellExtent[0];
     }
 
-    inline double cellSize(){
-        return _cellSize;
-    }
+    inline double cellSize() { return _cellSize; }
 
     repast::Point<int> virToCell(repast::Point<double> in) {
         repast::Point<int> out(

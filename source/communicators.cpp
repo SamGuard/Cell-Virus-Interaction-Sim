@@ -56,7 +56,7 @@ void CellPackageProvider::providePackage(Cell* agent,
     repast::AgentId id = agent->getId();
     CellPackage package(id.id(), id.startingRank(), id.agentType(),
                         id.currentRank(), agent->getState(),
-                        agent->getNextState(), agent->hasStateChanged);
+                        agent->getNextState(), agent->hasStateChanged, agent->getDeathTick());
     out.push_back(package);
 }
 
@@ -75,13 +75,15 @@ Cell* CellPackageReceiver::createAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type,
                        package.currentRank);
 
-    return new Cell(id, package.state, package.nextState,
+    Cell* out = new Cell(id, package.state, package.nextState,
                     package.hasStateChanged);
+    out->setDeathTick(package.deathTick);
+    return out;
 }
 
 void CellPackageReceiver::updateAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type);
     Cell* agent = agents->getAgent(id);
 
-    agent->set(id, package.state, package.nextState, package.hasStateChanged);
+    agent->set(id, package.state, package.nextState, package.hasStateChanged, package.deathTick);
 }

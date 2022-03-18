@@ -19,7 +19,7 @@ STATE_EMPTY = 3
 
 WIDTH = HEIGHT = 600
 NUM_PROCESSORS = 4
-CELL_SIZE = WIDTH / 12
+CELL_SIZE = WIDTH / 20
 MAX_LAYERS = 2
 global _root
 win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
@@ -219,6 +219,7 @@ def mainLoop(fileReaders: List[TextIOWrapper], agents: Dict[str, Agent]):
                         except:
                             pass
         else:
+            print(command)
             print("ERROR: COMMAND NOT RECOGNISED")
         
 

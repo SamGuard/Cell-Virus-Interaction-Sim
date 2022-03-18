@@ -9,12 +9,14 @@ void Cell::interact(
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                 repast::SimpleAdder<Virus>>* virusDiscSpace,
     std::vector<repast::Point<double>>* out) {
-    setNextState(getState());
+    
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
+    double currentTick =
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick() / 6;
 
     if (getState() == Dead) {
-        if (rand->nextDouble() < 0.05) {
+        if (getDeathTick() + 200 < currentTick) {
             setNextState(Empty);
         }
         return;
@@ -49,7 +51,7 @@ void Cell::interact(
                 it++;
             }
 
-            if (rand->nextDouble() < (double)healthyC * 0.25) {
+            if (rand->nextDouble() < (double)healthyC * 0.125) {
                 setNextState(Healthy);
             }
         }
@@ -65,9 +67,9 @@ void Cell::interact(
         repast::VN2DGridQuery<Virus> gridQ(virusDiscSpace);
 
         std::vector<Virus*> agents;
-        gridQ.query(vLoc, spaceTrans.cellSize(), true, agents);
+        gridQ.query(vLoc, spaceTrans.cellSize() / 2, true, agents);
 
-        if (agents.size() >= 1) {
+        if (rand->nextDouble() < 1.0 - pow(0.90, agents.size())) {
             setNextState(Infected);
         }
     }
@@ -83,11 +85,12 @@ void Cell::interact(
 
 CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank,
                          CellState _state, CellState _nextState,
-                         bool _hasStateChanged)
+                         bool _hasStateChanged, double _deathTick)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
       state(_state),
       nextState(_nextState),
-      hasStateChanged(_hasStateChanged) {}
+      hasStateChanged(_hasStateChanged),
+      deathTick(_deathTick) {}
