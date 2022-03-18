@@ -22,5 +22,7 @@ RUN mkdir objects; exit 0
 RUN mkdir bin; exit 0
 RUN mkdir output; exit 0
 CMD git pull \ 
+  && make clean \
   && make build_opt \
-  && make run
+  && make run \
+  && bash
