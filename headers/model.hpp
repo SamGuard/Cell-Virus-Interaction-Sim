@@ -72,6 +72,7 @@ class Model {
     void balanceAgents();
 
     void addVirus(repast::Point<double> loc);
+    void removeVirus(Virus* v);
 
     void move();
     void interact();

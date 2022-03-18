@@ -55,7 +55,8 @@ class Cell : public AgentBase {
         if (state == Dead) {
             setDeathTick(repast::RepastProcess::instance()
                              ->getScheduleRunner()
-                             .currentTick() / tickCycleLen);                            
+                             .currentTick() /
+                         tickCycleLen);
         } else if (state == Empty) {
             setDeathTick(-1);
         }
@@ -74,7 +75,7 @@ class Cell : public AgentBase {
                                     repast::SimpleAdder<Cell>>* cellSpace,
         repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                     repast::SimpleAdder<Virus>>* virusDiscSpace,
-        std::vector<repast::Point<double>>* out);
+        std::vector<repast::Point<double>>* add, std::vector<Virus*>* remove);
 };
 
 /* Serializable Agent Package */

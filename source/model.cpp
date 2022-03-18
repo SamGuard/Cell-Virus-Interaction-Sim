@@ -291,8 +291,7 @@ void Model::interact() {
 
         std::vector<Virus*>::iterator it = killList.begin();
         while (it != killList.end()) {
-            dataCol.killAgent((*it)->getId());
-            contexts.virus->removeAgent(*it);
+            removeVirus(*it);
             it++;
         }
     }
@@ -302,15 +301,25 @@ void Model::interact() {
         std::vector<Cell*> agents;
         contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
         std::vector<repast::Point<double>> virusToAdd;
+        std::vector<Virus*> virusToRemove;
         {
             std::vector<Cell*>::iterator it = agents.begin();
             while (it != agents.end()) {
                 (*it)->interact(contexts.cell, spaces.cellDisc,
-                                spaces.virusDisc, &virusToAdd);
+                                spaces.virusDisc, &virusToAdd, &virusToRemove);
+                it++;
+            }
+        }
+        // Remove viruses that enter cells
+        {
+            std::vector<Virus*>::iterator it = virusToRemove.begin();
+            while (it != virusToRemove.end()) {
+                removeVirus(*it);
                 it++;
             }
         }
 
+        // Add new viruses from infected cells
         {
             std::vector<repast::Point<double>>::iterator it =
                 virusToAdd.begin();
@@ -355,6 +364,11 @@ void Model::addVirus(repast::Point<double> loc) {
     dataCol.newAgent(id);
     dataCol.setPos(id, loc.coords(), true);
     virusIdCount++;
+}
+
+void Model::removeVirus(Virus* v) {
+    dataCol.killAgent(v->getId());
+    contexts.virus->removeAgent(v);
 }
 
 void Model::collectVirusData() {

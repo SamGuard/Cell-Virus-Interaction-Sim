@@ -8,7 +8,7 @@ void Cell::interact(
                                 repast::SimpleAdder<Cell>>* cellSpace,
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                 repast::SimpleAdder<Virus>>* virusDiscSpace,
-    std::vector<repast::Point<double>>* out) {
+    std::vector<repast::Point<double>>* add, std::vector<Virus*> *remove) {
     
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
@@ -69,14 +69,15 @@ void Cell::interact(
         std::vector<Virus*> agents;
         gridQ.query(vLoc, spaceTrans.cellSize() / 2, true, agents);
 
-        if (rand->nextDouble() < 1.0 - pow(0.90, agents.size())) {
+        if (rand->nextDouble() < 1.0 - pow(0.80, agents.size())) {
             setNextState(Infected);
+            remove->push_back(agents[0]);
         }
     }
 
     if (getState() == Infected) {
         if (rand->nextDouble() < 0.1) {
-            out->push_back(spaceTrans.cellToVir(loc));
+            add->push_back(spaceTrans.cellToVir(loc));
             setNextState(Dead);
             return;
         }
