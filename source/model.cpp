@@ -62,17 +62,15 @@ Model::Model(std::string propsFile, int argc, char** argv,
         spaces.virusDisc =
             new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                             repast::SimpleAdder<Virus>>(
-                "AgentDiscreteSpace", gd, processDims, 2, comm);
+                "AgentDiscreteSpace", gd, processDims, 0, comm);
         contexts.virus->addProjection(spaces.virusCont);
         contexts.virus->addProjection(spaces.virusDisc);
     }
 
     // Cell Space
     {
-        if ((double)cellCount / processDims[0] !=
-                (int)(cellCount / processDims[0]) ||
-            (double)cellCount / processDims[1] !=
-                (int)(cellCount / processDims[1])) {
+        if (cellCount % processDims[0] != 0 ||
+            cellCount % processDims[1] != 0) {
             cout << "Cell count must be a multiple of the processor dims"
                  << std::endl;
         }
@@ -199,7 +197,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
             new repast::MethodFunctor<Model>(this, &Model::collectCellData)));
 
     runner.scheduleEvent(
-        5, 10 * tickCycleLen,
+        5, 100 * tickCycleLen,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<DataCollector>(
             &this->dataCol, &DataCollector::writeData)));
 
@@ -296,12 +294,17 @@ void Model::interact() {
         }
     }
 
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
     // Cell
     {
         std::vector<Cell*> agents;
         contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
         std::vector<repast::Point<double>> virusToAdd;
-        std::vector<Virus*> virusToRemove;
+        std::set<Virus*> virusToRemove;
         {
             std::vector<Cell*>::iterator it = agents.begin();
             while (it != agents.end()) {
@@ -310,13 +313,20 @@ void Model::interact() {
                 it++;
             }
         }
+
         // Remove viruses that enter cells
         {
-            std::vector<Virus*>::iterator it = virusToRemove.begin();
+            std::set<Virus*>::iterator it = virusToRemove.begin();
             while (it != virusToRemove.end()) {
                 removeVirus(*it);
                 it++;
             }
+            /*
+            repast::RepastProcess::instance()
+                ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
+                                         CellPackageReceiver>(
+                    *contexts.cell, *comms.cellProv, *comms.cellRec,
+                    *comms.cellRec);*/
         }
 
         // Add new viruses from infected cells
@@ -339,6 +349,7 @@ void Model::interact() {
             }
         }
     }
+
     balanceAgents();
 }
 
@@ -364,11 +375,34 @@ void Model::addVirus(repast::Point<double> loc) {
     dataCol.newAgent(id);
     dataCol.setPos(id, loc.coords(), true);
     virusIdCount++;
+
+    /* For debugging
+    cout << "ADDING " << agent->getId() << " ON TICK "
+         << repast::RepastProcess::instance()
+                    ->getScheduleRunner()
+                    .currentTick() /
+                tickCycleLen
+         << " POS: " << loc[0] << " " << loc[1] << std::endl;
+    */
 }
 
 void Model::removeVirus(Virus* v) {
-    dataCol.killAgent(v->getId());
+    /* For debugging
+    std::vector<double> loc;
+    spaces.virusCont->getLocation(v->getId(), loc);
+    cout << "REMOVING " << v->getId() << " ON TICK "
+         << repast::RepastProcess::instance()
+                    ->getScheduleRunner()
+                    .currentTick() /
+                tickCycleLen
+         << " POS: " << loc[0] << " " << loc[1] << std::endl;
+    */
+
+    repast::AgentId id = v->getId();
+
+    dataCol.killAgent(id);
     contexts.virus->removeAgent(v);
+    repast::RepastProcess::instance()->agentRemoved(id);
 }
 
 void Model::collectVirusData() {

@@ -8,12 +8,12 @@ void Cell::interact(
                                 repast::SimpleAdder<Cell>>* cellSpace,
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                 repast::SimpleAdder<Virus>>* virusDiscSpace,
-    std::vector<repast::Point<double>>* add, std::vector<Virus*> *remove) {
-    
+    std::vector<repast::Point<double>>* add, std::set<Virus*>* remove) {
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
     double currentTick =
-        repast::RepastProcess::instance()->getScheduleRunner().currentTick() / 6;
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick() /
+        6;
 
     if (getState() == Dead) {
         if (getDeathTick() + 200 < currentTick) {
@@ -67,16 +67,31 @@ void Cell::interact(
         repast::VN2DGridQuery<Virus> gridQ(virusDiscSpace);
 
         std::vector<Virus*> agents;
-        gridQ.query(vLoc, spaceTrans.cellSize() / 2, true, agents);
+        gridQ.query(vLoc, spaceTrans.cellSize() / 2.01, true, agents);
 
         if (rand->nextDouble() < 1.0 - pow(0.80, agents.size())) {
-            setNextState(Infected);
-            remove->push_back(agents[0]);
+            // A virus cannot infect two cells at once so if the chosen virus is
+            // already in the set then try find another
+            bool canFindVirus = false;
+            std::vector<Virus*>::iterator it = agents.begin();
+            while (it != agents.end()) {
+                if (remove->find(*it) == remove->end()) {
+                    canFindVirus = true;
+                    remove->insert(*it);
+                    break;
+                }
+                it++;
+            }
+
+            if (canFindVirus) {
+                setNextState(Infected);
+            }
         }
     }
 
     if (getState() == Infected) {
         if (rand->nextDouble() < 0.1) {
+            add->push_back(spaceTrans.cellToVir(loc));
             add->push_back(spaceTrans.cellToVir(loc));
             setNextState(Dead);
             return;

@@ -75,7 +75,7 @@ class Cell : public AgentBase {
                                     repast::SimpleAdder<Cell>>* cellSpace,
         repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                     repast::SimpleAdder<Virus>>* virusDiscSpace,
-        std::vector<repast::Point<double>>* add, std::vector<Virus*>* remove);
+        std::vector<repast::Point<double>>* add, std::set<Virus*>* remove);
 };
 
 /* Serializable Agent Package */
