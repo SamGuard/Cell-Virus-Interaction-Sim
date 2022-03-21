@@ -21,6 +21,11 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 ./objects/main.o: ./headers/constants.hpp ./headers/model.hpp ./source/main.cpp 
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/main.cpp -o ./objects/main.o $(COMP_FLAGS)
 
+./data_visualiser/vis_main.cpp:
+
+build_vis: ./data_visualiser/EasyBMP.hpp ./data_visualiser/vis_main.hpp
+	cd ./data_visualiser \
+	&& g++ vis_main.cpp -I*.hpp -o vis_main
 
 del_data:
 	- rm ./output/*
