@@ -17,9 +17,9 @@ STATE_EMPTY = 3
 
 
 
-WIDTH = HEIGHT = 600
-NUM_PROCESSORS = 4
-CELL_SIZE = WIDTH / 20
+WIDTH = HEIGHT = 1281
+NUM_PROCESSORS = 32
+CELL_SIZE = WIDTH / 320
 MAX_LAYERS = 2
 global _root
 win = GraphWin("Data Visualiser", WIDTH, HEIGHT, autoflush=False)
@@ -72,9 +72,10 @@ class Agent:
 class Virus(Agent):
     
     def initGraphics(this, x: float, y: float):
-        this.shape = Oval(Point(0, 0), Point(5, 5))
+        this.shape = Oval(Point(0, 0), Point(3, 3))
         this.shape.move(x, y)
         this.shape.setFill("red")
+        this.shape.setOutline("red")
         this.shape.draw(win)
         this.layer = 1
     
@@ -103,14 +104,14 @@ class Cell(Agent):
     
     def update(this):
         if(this.state == STATE_EMPTY):
+            this.shape.setFill("black")
+            this.shape.setOutline("black")
+        elif(this.state == STATE_HEALTHY):
             this.shape.setFill("white")
             this.shape.setOutline("white")
-        elif(this.state == STATE_HEALTHY):
-            this.shape.setFill("green")
-            this.shape.setOutline("green")
         elif(this.state == STATE_INFECTED):
-            this.shape.setFill("red")
-            this.shape.setOutline("red")
+            this.shape.setFill("purple")
+            this.shape.setOutline("purple")
         elif(this.state == STATE_DEAD):
             this.shape.setFill("grey")
             this.shape.setOutline("grey")
