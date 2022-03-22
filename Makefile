@@ -25,7 +25,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 
 build_vis: ./data_visualiser/EasyBMP.hpp ./data_visualiser/vis_main.hpp
 	cd ./data_visualiser \
-	&& g++ vis_main.cpp -I*.hpp -o vis_main
+	&& g++ vis_main.cpp -o vis_main
 
 del_data:
 	- rm ./output/*
@@ -45,7 +45,7 @@ debug: del_data
 run_vis:
 	- rm ./data_visualiser/images/*
 	cd ./data_visualiser; \
-	python3 ./visuals.py; \
+	./vis_main; \
 
 movie:
 	cd ./data_visualiser/; \
