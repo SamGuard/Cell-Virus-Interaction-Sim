@@ -1,7 +1,5 @@
 #Properties file
 lifetime = 1000
 virusCount = 1
-cellCount = 320
+cellCount = 16
 cellDeathChanceOvercrowding = 0.00001
-procDimsX = 8
-procDimsY = 4

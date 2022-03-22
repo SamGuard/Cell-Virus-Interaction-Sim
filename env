@@ -9,3 +9,7 @@ REPAST_HPC_LIB_DIR=-L/home/sam/sfw/repast_hpc-2.3.1/lib/
 REPAST_HPC_LIB=-lrepast_hpc-2.3.1
 
 COMP_FLAGS=-Wall -g
+
+procDimsX=2
+procDimsY=2
+NUM_PROCS=4

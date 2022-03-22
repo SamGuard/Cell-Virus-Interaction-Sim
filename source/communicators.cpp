@@ -11,7 +11,7 @@ void VirusPackageProvider::providePackage(Virus* agent,
     repast::AgentId id = agent->getId();
     VirusPackage package(id.id(), id.startingRank(), id.agentType(),
                          id.currentRank(), agent->getVel().x, agent->getVel().y,
-                         agent->getBirthTick());
+                         agent->getBirthTick(), agent->getAttFactors());
 
     out.push_back(package);
 }
@@ -43,7 +43,7 @@ void VirusPackageReceiver::updateAgent(VirusPackage package) {
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    agent->set(id, v, package.birthTick);
+    agent->set(id, v, package.birthTick, package.attFactors);
 }
 
 // Cell ----------------------------------------------------------------
@@ -55,8 +55,9 @@ void CellPackageProvider::providePackage(Cell* agent,
                                          std::vector<CellPackage>& out) {
     repast::AgentId id = agent->getId();
     CellPackage package(id.id(), id.startingRank(), id.agentType(),
-                        id.currentRank(), agent->getState(),
-                        agent->getNextState(), agent->hasStateChanged, agent->getDeathTick());
+                        id.currentRank(), agent->getReceptorType(),
+                        agent->getState(), agent->getNextState(),
+                        agent->hasStateChanged, agent->getDeathTick());
     out.push_back(package);
 }
 
@@ -76,7 +77,7 @@ Cell* CellPackageReceiver::createAgent(CellPackage package) {
                        package.currentRank);
 
     Cell* out = new Cell(id, package.state, package.nextState,
-                    package.hasStateChanged);
+                         package.hasStateChanged, package.receptorType);
     out->setDeathTick(package.deathTick);
     return out;
 }
@@ -85,5 +86,6 @@ void CellPackageReceiver::updateAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type);
     Cell* agent = agents->getAgent(id);
 
-    agent->set(id, package.state, package.nextState, package.hasStateChanged, package.deathTick);
+    agent->set(id, package.state, package.nextState, package.hasStateChanged,
+               package.deathTick, package.receptorType);
 }

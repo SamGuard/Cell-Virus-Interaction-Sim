@@ -13,6 +13,7 @@ class Virus;
 class Cell : public AgentBase {
    private:
     CellState state;
+    int receptorType;
     double deathTick;
 
    public:
@@ -22,8 +23,9 @@ class Cell : public AgentBase {
     Cell() : AgentBase() {
         agentType = CellType;
         hasStateChanged = false;
-        this->state = this->nextState = Dead;
+        state = nextState = Dead;
         deathTick = -1;
+        receptorType = 0;
     }
     Cell(repast::AgentId id, CellState state) : Cell() {
         this->state = this->nextState = state;
@@ -32,23 +34,26 @@ class Cell : public AgentBase {
     }
 
     Cell(repast::AgentId id, CellState state, CellState nextState,
-         bool hasStateChanged)
+         bool hasStateChanged, int receptorType)
         : Cell(id, state) {
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
+        this->receptorType = receptorType;
     }
 
     void set(repast::AgentId id, CellState state, CellState nextState,
-             bool hasStateChanged, double deathTick) {
+             bool hasStateChanged, double deathTick, int receptorType) {
         this->id = id;
         this->state = state;
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
         this->deathTick = deathTick;
+        this->receptorType = receptorType;
     }
 
     CellState getState() { return state; }
     CellState getNextState() { return state; }
+    int getReceptorType() { return receptorType; }
 
     void setState(CellState state) { this->state = this->nextState = state; }
     void setNextState(CellState state) {
@@ -81,7 +86,7 @@ class Cell : public AgentBase {
 /* Serializable Agent Package */
 struct CellPackage {
    public:
-    int id, rank, type, currentRank;
+    int id, rank, type, currentRank, receptorType;
     CellState state, nextState;
     bool hasStateChanged;
     double deathTick;
@@ -89,8 +94,8 @@ struct CellPackage {
     /* Constructors */
     CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
-                CellState _state, CellState nextState, bool _hasStateChanged,
-                double _deathTick);
+                int _receptorType, CellState _state, CellState nextState,
+                bool _hasStateChanged, double _deathTick);
 
     /* For archive packaging */
     template <class Archive>
@@ -99,6 +104,7 @@ struct CellPackage {
         ar& rank;
         ar& type;
         ar& currentRank;
+        ar& receptorType;
         ar& state;
         ar& nextState;
         ar& hasStateChanged;

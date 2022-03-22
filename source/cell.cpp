@@ -72,10 +72,11 @@ void Cell::interact(
         if (rand->nextDouble() < 1.0 - pow(0.80, agents.size())) {
             // A virus cannot infect two cells at once so if the chosen virus is
             // already in the set then try find another
+            // As well as checking if the receptors/attatchment factors match
             bool canFindVirus = false;
             std::vector<Virus*>::iterator it = agents.begin();
             while (it != agents.end()) {
-                if (remove->find(*it) == remove->end()) {
+                if ((*it)->canAttach(receptorType) && remove->find(*it) == remove->end()) {
                     canFindVirus = true;
                     remove->insert(*it);
                     break;
@@ -99,13 +100,14 @@ void Cell::interact(
     }
 }
 
-CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank,
+CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank, int _receptorType,
                          CellState _state, CellState _nextState,
                          bool _hasStateChanged, double _deathTick)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
+      receptorType(_receptorType),
       state(_state),
       nextState(_nextState),
       hasStateChanged(_hasStateChanged),

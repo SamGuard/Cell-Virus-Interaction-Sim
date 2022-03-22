@@ -15,6 +15,8 @@
 class Cell;
 
 class Virus : public AgentBase {
+   private:
+    std::vector<int> attFactors;  // Attatchment factors
    public:
     Virus() : AgentBase() { agentType = VirusType; }
 
@@ -31,10 +33,24 @@ class Virus : public AgentBase {
     inline Vector getVel() { return vel; }
     inline double getBirthTick() { return birthTick; }
 
-    void set(repast::AgentId id, Vector vel, double birthTick) {
+    inline std::vector<int> getAttFactors() { return attFactors; }
+
+    void set(repast::AgentId id, Vector vel, double birthTick,
+             std::vector<int> attFactors) {
         this->id = id;
         this->vel = vel;
         this->birthTick = birthTick;
+        this->attFactors = attFactors;
+    }
+
+    void addAttatchFactor(int x) { attFactors.push_back(x); }
+    bool canAttach(int x){
+        for(std::vector<int>::iterator it; it != attFactors.begin(); it++){
+            if(*it == x){
+                return true;
+            }
+        }
+        return false;
     }
 
     // This is where interactions that change the state of agents take place
@@ -60,11 +76,12 @@ struct VirusPackage {
    public:
     int id, rank, type, currentRank;
     double velx, vely, birthTick;
+    std::vector<int> attFactors;
 
     /* Constructors */
     VirusPackage();  // For serialization
     VirusPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
-                 double _vely, double _birthTick);
+                 double _vely, double _birthTick, std::vector<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>
@@ -76,6 +93,7 @@ struct VirusPackage {
         ar& velx;
         ar& vely;
         ar& birthTick;
+        ar& attFactors;
     }
 };
 
