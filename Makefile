@@ -45,10 +45,10 @@ debug: del_data
 run_vis:
 	- rm ./data_visualiser/images/*
 	cd ./data_visualiser \
-	&& python3 ./visuals.py \
+	&& ./vis_main \
 
 movie:
 	cd ./data_visualiser/; \
 	ffmpeg -framerate 20 -i ./images/tick_%00d.bmp -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p output.mp4
 
-full: build run run_vis movie	
+full: build build_vis run run_vis movie	
