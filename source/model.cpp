@@ -131,6 +131,7 @@ void Model::init() {
                                    agentTypeToInt(CellType));
                 Cell* agent = new Cell(id, Healthy);
 
+
                 contexts.cell->addAgent(agent);
                 spaces.cellDisc->moveTo(id, pos);
 
@@ -367,6 +368,7 @@ void Model::addVirus(repast::Point<double> loc) {
     Virus* agent = new Virus(
         id, vel,
         repast::RepastProcess::instance()->getScheduleRunner().currentTick());
+    agent->addAttatchFactor(0);
 
     contexts.virus->addAgent(agent);
     spaces.virusCont->moveTo(id, loc);

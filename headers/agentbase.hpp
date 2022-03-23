@@ -13,6 +13,8 @@
 class AgentBase {
    protected:
     double birthTick;
+    std::vector<int> attFactors;  // Attatchment factors
+    int receptorType;
 
    public:
     Vector vel;
@@ -20,9 +22,10 @@ class AgentBase {
     AgentType agentType;
 
     AgentBase() {
-        this->vel.x = 0;
-        this->vel.y = 0;
-        this->agentType = BaseAgentType;
+        vel.x = 0;
+        vel.y = 0;
+        agentType = BaseAgentType;
+        receptorType = 0;
     }
 
     AgentBase(repast::AgentId id, Vector vel) {
@@ -41,9 +44,30 @@ class AgentBase {
     // Getter for agent specific attributes
     Vector getVel() { return vel; }
 
-    virtual void set(repast::AgentId id, Vector vel) {
+    void set(repast::AgentId id, Vector vel, int birthTick, int receptorType, std::vector<int> attFactors) {
         this->id = id;
         this->vel = vel;
+        this->birthTick = birthTick;
+        this->receptorType = receptorType;
+        this->attFactors = attFactors;
+    }
+
+    void setReceptorType(int receptorType) {
+        this->receptorType = receptorType;
+    }
+
+    int getReceptorType() { return receptorType; }
+    inline std::vector<int> getAttFactors() { return attFactors; }
+
+    void addAttatchFactor(int x) { attFactors.push_back(x); }
+    bool canAttach(int x) {
+        for (std::vector<int>::iterator it = attFactors.begin();
+             it != attFactors.end(); it++) {
+            if (*it == x) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // This is where interactions that change the state of agents take place

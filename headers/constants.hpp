@@ -12,10 +12,11 @@ enum AgentType { BaseAgentType, VirusType, CellType };
 extern double cellDeathChanceOvercrowding;
 extern unsigned long int virusIdCount;
 extern double tickCycleLen;  // The amount of ticks for one full cycle of every
-                          // action ( this is to give order to action)
+                             // action ( this is to give order to action)
 
 struct Vector {
     double x, y;
+    Vector() : x(0), y(0) {}
 };
 
 // Convert to an int for data logging

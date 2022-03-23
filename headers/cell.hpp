@@ -22,7 +22,7 @@ class Cell : public AgentBase {
     Cell() : AgentBase() {
         agentType = CellType;
         hasStateChanged = false;
-        this->state = this->nextState = Dead;
+        state = nextState = Dead;
         deathTick = -1;
     }
     Cell(repast::AgentId id, CellState state) : Cell() {
@@ -39,16 +39,16 @@ class Cell : public AgentBase {
     }
 
     void set(repast::AgentId id, CellState state, CellState nextState,
-             bool hasStateChanged, double deathTick) {
-        this->id = id;
+             bool hasStateChanged, double deathTick, int receptorType, std::vector<int> attFactors){
+        AgentBase::set(id, Vector(), 0, receptorType, attFactors);
         this->state = state;
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
-        this->deathTick = deathTick;
     }
 
     CellState getState() { return state; }
     CellState getNextState() { return state; }
+    
 
     void setState(CellState state) { this->state = this->nextState = state; }
     void setNextState(CellState state) {
@@ -81,16 +81,17 @@ class Cell : public AgentBase {
 /* Serializable Agent Package */
 struct CellPackage {
    public:
-    int id, rank, type, currentRank;
+    int id, rank, type, currentRank, receptorType;
     CellState state, nextState;
     bool hasStateChanged;
     double deathTick;
+    std::vector<int> attFactors;
 
     /* Constructors */
     CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
-                CellState _state, CellState nextState, bool _hasStateChanged,
-                double _deathTick);
+                int _receptorType, CellState _state, CellState nextState,
+                bool _hasStateChanged, double _deathTick, std::vector<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>
@@ -99,10 +100,12 @@ struct CellPackage {
         ar& rank;
         ar& type;
         ar& currentRank;
+        ar& receptorType;
         ar& state;
         ar& nextState;
         ar& hasStateChanged;
         ar& deathTick;
+        ar& attFactors;
     }
 };
 

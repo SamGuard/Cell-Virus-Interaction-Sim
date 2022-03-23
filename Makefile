@@ -37,15 +37,15 @@ clean: del_data
 	- rm ./bin/*
 
 run: del_data
-	mpirun -n 32 ./bin/main config.props model.props
+	mpirun -n $(NUM_PROCS) ./bin/main config.props model.props procDimsX=$(procDimsX) procDimsY=$(procDimsY)
 
 debug: del_data	
-		mpirun -np 4 xterm -e gdb --args ./bin/main config.props model.props
+		mpirun -np $(NUM_PROCS) xterm -e gdb --args ./bin/main config.props model.props procDimsX=$(procDimsX) procDimsY=$(procDimsY)
 
 run_vis:
 	- rm ./data_visualiser/images/*
-	cd ./data_visualiser; \
-	./vis_main; \
+	cd ./data_visualiser \
+	&& python3 ./visuals.py \
 
 movie:
 	cd ./data_visualiser/; \

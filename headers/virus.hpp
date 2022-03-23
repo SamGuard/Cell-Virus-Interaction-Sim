@@ -31,12 +31,6 @@ class Virus : public AgentBase {
     inline Vector getVel() { return vel; }
     inline double getBirthTick() { return birthTick; }
 
-    void set(repast::AgentId id, Vector vel, double birthTick) {
-        this->id = id;
-        this->vel = vel;
-        this->birthTick = birthTick;
-    }
-
     // This is where interactions that change the state of agents take place
     void interact(repast::SharedContext<Virus>* context,
                   repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
@@ -58,13 +52,15 @@ class Virus : public AgentBase {
 /* Serializable Agent Package */
 struct VirusPackage {
    public:
-    int id, rank, type, currentRank;
+    int id, rank, type, currentRank, receptorType;
     double velx, vely, birthTick;
+    std::vector<int> attFactors;
 
     /* Constructors */
     VirusPackage();  // For serialization
-    VirusPackage(int _id, int _rank, int _type, int _currentRank, double _velx,
-                 double _vely, double _birthTick);
+    VirusPackage(int _id, int _rank, int _type, int _currentRank,
+                 int receptorType, double _velx, double _vely,
+                 double _birthTick, std::vector<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>
@@ -73,9 +69,11 @@ struct VirusPackage {
         ar& rank;
         ar& type;
         ar& currentRank;
+        ar& receptorType;
         ar& velx;
         ar& vely;
         ar& birthTick;
+        ar& attFactors;
     }
 };
 

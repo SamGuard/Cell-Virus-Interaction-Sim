@@ -9,9 +9,8 @@ void Virus::interact(
     repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
                                 repast::SimpleAdder<Virus>>* virusDiscreteSpace,
     repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus>>*
-        virusContinSpace, bool &isAlive) {
-
+                                  repast::SimpleAdder<Virus>>* virusContinSpace,
+    bool& isAlive) {
     // Inter-virus interaction, not in use yet
     /*
     std::vector<Virus*> agentsToPlay;
@@ -24,11 +23,13 @@ void Virus::interact(
     std::vector<Virus*>::iterator agentToPlay = agentsToPlay.begin();
     while (agentToPlay != agentsToPlay.end()) {}
     */
-   isAlive = true;
-   // birthTick + lifetime * tickCycleLen this is because each cycle of actions takes a number of ticks
-   if(birthTick + 100 * tickCycleLen < repast::RepastProcess::instance()->getScheduleRunner().currentTick()){
-       isAlive = false;
-   }
+    isAlive = true;
+    // birthTick + lifetime * tickCycleLen this is because each cycle of actions
+    // takes a number of ticks
+    if (birthTick + 100 * tickCycleLen <
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick()) {
+        isAlive = false;
+    }
 }
 
 void Virus::move(
@@ -66,11 +67,14 @@ void Virus::move(
 VirusPackage::VirusPackage() {}
 
 VirusPackage::VirusPackage(int _id, int _rank, int _type, int _currentRank,
-                           double _velx, double _vely, double _birthTick)
+                           int _receptorType, double _velx, double _vely,
+                           double _birthTick, std::vector<int> _attFactors)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
+      receptorType(_receptorType),
       velx(_velx),
       vely(_vely),
-      birthTick(_birthTick) {}
+      birthTick(_birthTick),
+      attFactors(_attFactors) {}
