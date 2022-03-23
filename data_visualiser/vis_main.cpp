@@ -8,13 +8,14 @@
 
 #include "EasyBMP.hpp"
 
-const int NUM_PROCS = 32;
-const int NUM_CELLS = 320;
+const int NUM_PROCS = 4;
+const int NUM_CELLS = 16;
 const int WIDTH = 1280;
 const int HEIGHT = 1280;
 const double CELL_SIZE = 1280 / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
+const int MAX_LAYERS = 2;
 
 enum State { Dead, Healthy, Infected, Empty };
 enum AgentTypes { BaseAgentType, VirusType, CellType };
@@ -27,6 +28,7 @@ void transformPoints(double &x, double &y) {
 class Agent {
    protected:
     EasyBMP::RGBColor col;
+    int layer;
 
    public:
     double x, y, size;
@@ -34,8 +36,10 @@ class Agent {
 
     Agent() {
         x = y = 0;
-        size = 3;
+        size = 30;
+        layer = 0;
         col = EasyBMP::RGBColor(255, 255, 255);
+        state = Healthy;
     }
 
     Agent(double x, double y, double size, EasyBMP::RGBColor col, State state)
@@ -54,46 +58,48 @@ class Agent {
         this->update();
     }
 
+    int getLayer() { return layer; }
+
     virtual void update() {}
 
-    virtual void draw(EasyBMP::Image *img) {
-        static const double PI = 3.1415926535;
-        double i, angle, x1, y1;
-        int rad = size * SCALE;
-
-        for (i = 0; i < 360; i += 0.1) {
-            angle = i;
-            x1 = x;
-            y1 = y;
-            transformPoints(x1, y1);
-            x1 += rad * cos(angle * PI / 180);
-            y1 += rad * sin(angle * PI / 180);
-            if(img->isValidCoordinate(x1, y1))
-              img->SetPixel(x1, y1, col);
-        }
-    }
+    virtual void draw(EasyBMP::Image *img) = 0;
 };
 
 class Virus : public Agent {
    public:
-    Virus() : Agent() {}
+    Virus() : Agent() { layer = 1; }
     Virus(double x, double y, double size, EasyBMP::RGBColor col, State state)
-        : Agent(x, y, size, col, state) {}
+        : Agent(x, y, size, col, state) {
+        layer = 1;
+        state = Healthy;
+    }
 
     void update() {
         if (state != Healthy) {
-            std::cout << "Invalid virus state" << std::endl;
+            std::cout << "Invalid virus state " << state << std::endl;
         }
-
         this->col = EasyBMP::RGBColor(255, 0, 0);
+    }
+
+    void draw(EasyBMP::Image *img) {
+        static const double PI = 3.1415926535;
+        double i, angle, x1, y1;
+        int rad = size * SCALE;
+
+        x1 = x;
+        y1 = y;
+        transformPoints(x1, y1);
+        img->DrawCircle(x1, y1, rad, col, true);
     }
 };
 
 class Cell : public Agent {
    public:
-    Cell() : Agent() {}
+    Cell() : Agent() { layer = 0; }
     Cell(double x, double y, double size, EasyBMP::RGBColor col, State state)
-        : Agent(x, y, size, col, state) {}
+        : Agent(x, y, size, col, state) {
+        layer = 0;
+    }
 
     void update() {
         switch (state) {
@@ -115,17 +121,25 @@ class Cell : public Agent {
     }
 
     void draw(EasyBMP::Image *img) {
-        double x1, y1;
-        x1 = x;
-        y1 = y;
-        transformPoints(x1, y1);
-        int size = this->size * SCALE;
+        double x0, y0;
+        x0 = x;
+        y0 = y;
+        transformPoints(x0, y0);
+        int size = this->size;
 
-        for (int i = -size / 2; i < size / 2; i++) {
-            for (int j = -size / 2; j < size / 2; j++) {
-                if(img->isValidCoordinate(x1 + i, y1 + j))
-                  img->SetPixel(x1 + i, y1 + j, col);
-            }
+        if (x0 + size < 0 && x0 - size > WIDTH - 1 && y0 + size < 0 &&
+            y0 - size > HEIGHT - 1) {
+            return;
+        }
+
+        for (int row = 0; row < size; row++) {
+            double x1, x2, y1;
+            y1 = y0 - size / 2 + row;
+            if (!img->isValidCoordinate(0, y1)) return;
+            x1 = std::max(x0 - size, 0.0);
+            x2 = std::min(x0 + size, WIDTH - 1.0);
+
+            img->DrawLine(x1, y1, x2, y1, col);
         }
     }
 };
@@ -194,12 +208,15 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                 return;
             case VirusType:
                 agent = new Virus();
-                agent->size = 4;
+                agent->size = 2;
+                agent->update();
+                break;
             case CellType:
                 agent = new Cell();
                 agent->size = CELL_SIZE;
-                agent->state = Infected;
+                agent->state = Healthy;
                 agent->update();
+                break;
             default:
                 break;
         }
@@ -223,9 +240,12 @@ void moveAgent(std::string payload, std::map<std::string, Agent *> &agents) {
         std::string s = *it;
         std::vector<std::string> vals;
         splitString(s, '|', vals);
+        if (vals.size() == 0) {
+            return;
+        }
         if (vals.size() != 5) {
-            std::cout << "Invalid entry for createmove agent: " << s
-                      << " size of " << vals.size() << std::endl;
+            std::cout << "Invalid entry for move agent: " << s << " size of "
+                      << vals.size() << std::endl;
             return;
         }
         int agentId = std::stoi(vals[0]);
@@ -240,12 +260,43 @@ void moveAgent(std::string payload, std::map<std::string, Agent *> &agents) {
     }
 }
 void setStateOfAgent(std::string payload,
-                     std::map<std::string, Agent *> &agents) {}
+                     std::map<std::string, Agent *> &agents) {
+    std::vector<std::string> entries;
+    splitString(payload, ',', entries);
+    for (std::vector<std::string>::iterator it = entries.begin();
+         it != entries.end(); it++) {
+        std::string s = *it;
+        std::vector<std::string> vals;
+        splitString(s, '|', vals);
+        if (vals.size() == 0) {
+            return;
+        }
+        if (vals.size() != 4) {
+            std::cout << "Invalid entry for set agent state: " << s << " size of "
+                      << vals.size() << std::endl;
+            return;
+        }
+        int agentId = std::stoi(vals[0]);
+        int sProc = std::stoi(vals[1]);
+        int type = std::stoi(vals[2]);
+        int state = std::stod(vals[3]);
+
+        std::string id = makeID(agentId, sProc, type);
+
+        Agent* a = agents[id];
+        a->setState((State)state);
+        a->update();
+    }
+}
 
 void draw(std::map<std::string, Agent *> agents, EasyBMP::Image *img) {
-    for (std::map<std::string, Agent *>::iterator it = agents.begin();
-         it != agents.end(); it++) {
-        it->second->draw(img);
+    for (int layer = 0; layer < MAX_LAYERS; layer++) {
+        for (std::map<std::string, Agent *>::iterator it = agents.begin();
+             it != agents.end(); it++) {
+            if (it->second->getLayer() == layer) {
+                it->second->draw(img);
+            }
+        }
     }
 }
 
@@ -282,6 +333,7 @@ void mainLoop() {
             moveAgent(payload, agents);
         } else if (command.compare("setstate") == 0) {
             // Change agent state
+            setStateOfAgent(payload, agents);
         } else if (command.compare("tick") == 0) {
             // Go to next file
             cReader = (cReader + 1) % NUM_PROCS;
