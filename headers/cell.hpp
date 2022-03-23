@@ -13,7 +13,6 @@ class Virus;
 class Cell : public AgentBase {
    private:
     CellState state;
-    int receptorType;
     double deathTick;
 
    public:
@@ -25,7 +24,6 @@ class Cell : public AgentBase {
         hasStateChanged = false;
         state = nextState = Dead;
         deathTick = -1;
-        receptorType = 0;
     }
     Cell(repast::AgentId id, CellState state) : Cell() {
         this->state = this->nextState = state;
@@ -34,26 +32,23 @@ class Cell : public AgentBase {
     }
 
     Cell(repast::AgentId id, CellState state, CellState nextState,
-         bool hasStateChanged, int receptorType)
+         bool hasStateChanged)
         : Cell(id, state) {
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
-        this->receptorType = receptorType;
     }
 
     void set(repast::AgentId id, CellState state, CellState nextState,
-             bool hasStateChanged, double deathTick, int receptorType) {
-        this->id = id;
+             bool hasStateChanged, double deathTick, int receptorType, std::vector<int> attFactors){
+        AgentBase::set(id, Vector(), 0, receptorType, attFactors);
         this->state = state;
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
-        this->deathTick = deathTick;
-        this->receptorType = receptorType;
     }
 
     CellState getState() { return state; }
     CellState getNextState() { return state; }
-    int getReceptorType() { return receptorType; }
+    
 
     void setState(CellState state) { this->state = this->nextState = state; }
     void setNextState(CellState state) {
@@ -90,12 +85,13 @@ struct CellPackage {
     CellState state, nextState;
     bool hasStateChanged;
     double deathTick;
+    std::vector<int> attFactors;
 
     /* Constructors */
     CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
                 int _receptorType, CellState _state, CellState nextState,
-                bool _hasStateChanged, double _deathTick);
+                bool _hasStateChanged, double _deathTick, std::vector<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>
@@ -109,6 +105,7 @@ struct CellPackage {
         ar& nextState;
         ar& hasStateChanged;
         ar& deathTick;
+        ar& attFactors;
     }
 };
 

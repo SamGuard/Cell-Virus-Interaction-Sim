@@ -39,8 +39,8 @@ debug: del_data
 
 run_vis:
 	- rm ./data_visualiser/images/*
-	cd ./data_visualiser; \
-	python3 ./visuals.py; \
+	cd ./data_visualiser \
+	&& python3 ./visuals.py \
 
 movie:
 	cd ./data_visualiser/; \

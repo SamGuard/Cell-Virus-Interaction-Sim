@@ -67,12 +67,13 @@ void Virus::move(
 VirusPackage::VirusPackage() {}
 
 VirusPackage::VirusPackage(int _id, int _rank, int _type, int _currentRank,
-                           double _velx, double _vely, double _birthTick,
-                           std::vector<int> _attFactors)
+                           int _receptorType, double _velx, double _vely,
+                           double _birthTick, std::vector<int> _attFactors)
     : id(_id),
       rank(_rank),
       type(_type),
       currentRank(_currentRank),
+      receptorType(_receptorType),
       velx(_velx),
       vely(_vely),
       birthTick(_birthTick),

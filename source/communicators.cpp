@@ -10,7 +10,8 @@ void VirusPackageProvider::providePackage(Virus* agent,
                                           std::vector<VirusPackage>& out) {
     repast::AgentId id = agent->getId();
     VirusPackage package(id.id(), id.startingRank(), id.agentType(),
-                         id.currentRank(), agent->getVel().x, agent->getVel().y,
+                         id.currentRank(), agent->getReceptorType(),
+                         agent->getVel().x, agent->getVel().y,
                          agent->getBirthTick(), agent->getAttFactors());
 
     out.push_back(package);
@@ -43,7 +44,8 @@ void VirusPackageReceiver::updateAgent(VirusPackage package) {
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    agent->set(id, v, package.birthTick, package.attFactors);
+    agent->set(id, v, package.birthTick, package.receptorType,
+               package.attFactors);
 }
 
 // Cell ----------------------------------------------------------------
@@ -54,10 +56,10 @@ CellPackageProvider::CellPackageProvider(repast::SharedContext<Cell>* agentPtr)
 void CellPackageProvider::providePackage(Cell* agent,
                                          std::vector<CellPackage>& out) {
     repast::AgentId id = agent->getId();
-    CellPackage package(id.id(), id.startingRank(), id.agentType(),
-                        id.currentRank(), agent->getReceptorType(),
-                        agent->getState(), agent->getNextState(),
-                        agent->hasStateChanged, agent->getDeathTick());
+    CellPackage package(
+        id.id(), id.startingRank(), id.agentType(), id.currentRank(),
+        agent->getReceptorType(), agent->getState(), agent->getNextState(),
+        agent->hasStateChanged, agent->getDeathTick(), agent->getAttFactors());
     out.push_back(package);
 }
 
@@ -76,8 +78,10 @@ Cell* CellPackageReceiver::createAgent(CellPackage package) {
     repast::AgentId id(package.id, package.rank, package.type,
                        package.currentRank);
 
-    Cell* out = new Cell(id, package.state, package.nextState,
-                         package.hasStateChanged, package.receptorType);
+    Cell* out = new Cell();
+    out->set(id, package.state, package.nextState,
+             package.hasStateChanged, package.deathTick, package.receptorType,
+             package.attFactors);
     out->setDeathTick(package.deathTick);
     return out;
 }
@@ -87,5 +91,5 @@ void CellPackageReceiver::updateAgent(CellPackage package) {
     Cell* agent = agents->getAgent(id);
 
     agent->set(id, package.state, package.nextState, package.hasStateChanged,
-               package.deathTick, package.receptorType);
+               package.deathTick, package.receptorType, package.attFactors);
 }

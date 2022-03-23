@@ -76,7 +76,8 @@ void Cell::interact(
             bool canFindVirus = false;
             std::vector<Virus*>::iterator it = agents.begin();
             while (it != agents.end()) {
-                if ((*it)->canAttach(receptorType) && remove->find(*it) == remove->end()) {
+                if ((*it)->canAttach(receptorType) &&
+                    remove->find(*it) == remove->end()) {
                     canFindVirus = true;
                     remove->insert(*it);
                     break;
@@ -100,9 +101,10 @@ void Cell::interact(
     }
 }
 
-CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank, int _receptorType,
-                         CellState _state, CellState _nextState,
-                         bool _hasStateChanged, double _deathTick)
+CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank,
+                         int _receptorType, CellState _state,
+                         CellState _nextState, bool _hasStateChanged,
+                         double _deathTick, std::vector<int> _attFactors)
     : id(_id),
       rank(_rank),
       type(_type),
@@ -111,4 +113,5 @@ CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank, int _r
       state(_state),
       nextState(_nextState),
       hasStateChanged(_hasStateChanged),
-      deathTick(_deathTick) {}
+      deathTick(_deathTick),
+      attFactors(_attFactors) {}
