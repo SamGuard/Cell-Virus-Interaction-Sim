@@ -1,15 +1,15 @@
 #include "communicators.hpp"
 
-// Virus --------------------------------------------------------------
+// Particle --------------------------------------------------------------
 
-VirusPackageProvider::VirusPackageProvider(
-    repast::SharedContext<Virus>* agentPtr)
+ParticlePackageProvider::ParticlePackageProvider(
+    repast::SharedContext<Particle>* agentPtr)
     : agents(agentPtr) {}
 
-void VirusPackageProvider::providePackage(Virus* agent,
-                                          std::vector<VirusPackage>& out) {
+void ParticlePackageProvider::providePackage(Particle* agent,
+                                          std::vector<ParticlePackage>& out) {
     repast::AgentId id = agent->getId();
-    VirusPackage package(id.id(), id.startingRank(), id.agentType(),
+    ParticlePackage package(id.id(), id.startingRank(), id.agentType(),
                          id.currentRank(), agent->getReceptorType(),
                          agent->getVel().x, agent->getVel().y,
                          agent->getBirthTick(), agent->getAttFactors());
@@ -17,34 +17,34 @@ void VirusPackageProvider::providePackage(Virus* agent,
     out.push_back(package);
 }
 
-void VirusPackageProvider::provideContent(repast::AgentRequest req,
-                                          std::vector<VirusPackage>& out) {
+void ParticlePackageProvider::provideContent(repast::AgentRequest req,
+                                          std::vector<ParticlePackage>& out) {
     std::vector<repast::AgentId> ids = req.requestedAgents();
     for (size_t i = 0; i < ids.size(); i++) {
         providePackage(agents->getAgent(ids[i]), out);
     }
 }
 
-VirusPackageReceiver::VirusPackageReceiver(
-    repast::SharedContext<Virus>* agentPtr)
+ParticlePackageReceiver::ParticlePackageReceiver(
+    repast::SharedContext<Particle>* agentPtr)
     : agents(agentPtr) {}
 
-Virus* VirusPackageReceiver::createAgent(VirusPackage package) {
+Particle* ParticlePackageReceiver::createAgent(ParticlePackage package) {
     repast::AgentId id(package.id, package.rank, package.type,
                        package.currentRank);
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    return new Virus(id, v, package.birthTick);
+    return new Particle(id, (AgentType)package.type, v, package.birthTick);
 }
 
-void VirusPackageReceiver::updateAgent(VirusPackage package) {
+void ParticlePackageReceiver::updateAgent(ParticlePackage package) {
     repast::AgentId id(package.id, package.rank, package.type);
-    Virus* agent = agents->getAgent(id);
+    Particle* agent = agents->getAgent(id);
     Vector v;
     v.x = package.velx;
     v.y = package.vely;
-    agent->set(id, v, package.birthTick, package.receptorType,
+    agent->set(id, (AgentType)package.type, v, package.birthTick, package.receptorType,
                package.attFactors);
 }
 

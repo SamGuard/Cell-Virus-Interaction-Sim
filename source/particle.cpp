@@ -1,15 +1,15 @@
-#include "virus.hpp"
+#include "particle.hpp"
 
 #include "cell.hpp"
 #include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"
 
-void Virus::interact(
-    repast::SharedContext<Virus>* context,
-    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                repast::SimpleAdder<Virus>>* virusDiscreteSpace,
-    repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus>>* virusContinSpace,
+void Particle::interact(
+    repast::SharedContext<Particle>* context,
+    repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                repast::SimpleAdder<Particle>>* partDiscreteSpace,
+    repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                  repast::SimpleAdder<Particle>>* partContinSpace,
     bool& isAlive) {
     // Inter-virus interaction, not in use yet
     /*
@@ -32,11 +32,11 @@ void Virus::interact(
     }
 }
 
-void Virus::move(
-    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                repast::SimpleAdder<Virus>>* discreteSpace,
-    repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus>>* continSpace) {
+void Particle::move(
+    repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                repast::SimpleAdder<Particle>>* discreteSpace,
+    repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                  repast::SimpleAdder<Particle>>* continSpace) {
     std::vector<double> loc;
     continSpace->getLocation(id, loc);
     loc[0] += vel.x;
@@ -64,9 +64,9 @@ void Virus::move(
 
 /* Serializable Agent Package Data */
 
-VirusPackage::VirusPackage() {}
+ParticlePackage::ParticlePackage() {}
 
-VirusPackage::VirusPackage(int _id, int _rank, int _type, int _currentRank,
+ParticlePackage::ParticlePackage(int _id, int _rank, int _type, int _currentRank,
                            int _receptorType, double _velx, double _vely,
                            double _birthTick, std::vector<int> _attFactors)
     : id(_id),

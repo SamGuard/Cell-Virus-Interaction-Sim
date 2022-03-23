@@ -4,11 +4,11 @@
 #include "agentbase.hpp"
 #include "repast_hpc/Schedule.h"
 #include "repast_hpc/VN2DGridQuery.h"
-#include "virus.hpp"
+#include "particle.hpp"
 
 enum CellState { Dead, Healthy, Infected, Empty };
 
-class Virus;
+class Particle;
 
 class Cell : public AgentBase {
    private:
@@ -24,6 +24,7 @@ class Cell : public AgentBase {
         hasStateChanged = false;
         state = nextState = Dead;
         deathTick = -1;
+        receptorType = REC_CELL;
     }
     Cell(repast::AgentId id, CellState state) : Cell() {
         this->state = this->nextState = state;
@@ -40,7 +41,7 @@ class Cell : public AgentBase {
 
     void set(repast::AgentId id, CellState state, CellState nextState,
              bool hasStateChanged, double deathTick, int receptorType, std::vector<int> attFactors){
-        AgentBase::set(id, Vector(), 0, receptorType, attFactors);
+        AgentBase::set(id, CellType, Vector(), 0, receptorType, attFactors);
         this->state = state;
         this->nextState = nextState;
         this->hasStateChanged = hasStateChanged;
@@ -73,9 +74,9 @@ class Cell : public AgentBase {
         repast::SharedContext<Cell>* cellContext,
         repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
                                     repast::SimpleAdder<Cell>>* cellSpace,
-        repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                    repast::SimpleAdder<Virus>>* virusDiscSpace,
-        std::vector<repast::Point<double>>* add, std::set<Virus*>* remove);
+        repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                    repast::SimpleAdder<Particle>>* partDiscSpace,
+        std::vector<std::tuple<repast::Point<double>, AgentType>>* add, std::set<Particle*>* remove);
 };
 
 /* Serializable Agent Package */

@@ -1,14 +1,14 @@
 #include "cell.hpp"
 
-#include "virus.hpp"
+#include "particle.hpp"
 
 void Cell::interact(
     repast::SharedContext<Cell>* cellContext,
     repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
                                 repast::SimpleAdder<Cell>>* cellSpace,
-    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                repast::SimpleAdder<Virus>>* virusDiscSpace,
-    std::vector<repast::Point<double>>* add, std::set<Virus*>* remove) {
+    repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                repast::SimpleAdder<Particle>>* partDiscSpace,
+    std::vector<std::tuple<repast::Point<double>, AgentType>>* add, std::set<Particle*>* remove) {
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
     double currentTick =
@@ -61,12 +61,12 @@ void Cell::interact(
         std::vector<int> vLoc;  // location in the viruses coordinate system
         {
             repast::Point<int> p(loc[0], loc[1]);
-            vLoc = spaceTrans.cellToVirDisc(p).coords();
+            vLoc = spaceTrans.cellToPartDisc(p).coords();
         }
 
-        repast::VN2DGridQuery<Virus> gridQ(virusDiscSpace);
+        repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
 
-        std::vector<Virus*> agents;
+        std::vector<Particle*> agents;
         gridQ.query(vLoc, spaceTrans.cellSize() / 2.01, true, agents);
 
         if (rand->nextDouble() < 1.0 - pow(0.80, agents.size())) {
@@ -74,9 +74,11 @@ void Cell::interact(
             // already in the set then try find another
             // As well as checking if the receptors/attatchment factors match
             bool canFindVirus = false;
-            std::vector<Virus*>::iterator it = agents.begin();
+            std::vector<Particle*>::iterator it = agents.begin();
             while (it != agents.end()) {
-                if ((*it)->canAttach(receptorType) &&
+                // Check the particle returned is a virus
+                if ((*it)->getAgentType() == VirusType &&
+                    (*it)->canAttach(receptorType) &&
                     remove->find(*it) == remove->end()) {
                     canFindVirus = true;
                     remove->insert(*it);
@@ -93,8 +95,9 @@ void Cell::interact(
 
     if (getState() == Infected) {
         if (rand->nextDouble() < 0.1) {
-            add->push_back(spaceTrans.cellToVir(loc));
-            add->push_back(spaceTrans.cellToVir(loc));
+            for(int i = 0; i < 2; i++){
+                add->push_back(std::tuple<repast::Point<double>, AgentType>(spaceTrans.cellToPart(loc), VirusType));
+            }
             setNextState(Dead);
             return;
         }

@@ -1,18 +1,18 @@
 include ./env
 
-build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o
+build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS)
 
-build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/virus.o ./objects/cell.o
+build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
 
 ./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./headers/cell.hpp ./source/cell.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o $(COMP_FLAGS)
 
-./objects/virus.o: ./headers/constants.hpp ./headers/agentbase.hpp ./headers/virus.hpp ./source/virus.cpp
-	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/virus.cpp -o ./objects/virus.o $(COMP_FLAGS)
+./objects/particle.o: ./headers/constants.hpp ./headers/agentbase.hpp ./headers/particle.hpp ./source/particle.cpp
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/particle.cpp -o ./objects/particle.o $(COMP_FLAGS)
 
-./objects/communicators.o: ./headers/constants.hpp ./headers/virus.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
+./objects/communicators.o: ./headers/constants.hpp ./headers/particle.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o $(COMP_FLAGS)
 
 ./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp

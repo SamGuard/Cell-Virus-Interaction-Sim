@@ -65,10 +65,10 @@ class Agent {
     virtual void draw(EasyBMP::Image *img) = 0;
 };
 
-class Virus : public Agent {
+class Particle : public Agent {
    public:
-    Virus() : Agent() { layer = 1; }
-    Virus(double x, double y, double size, EasyBMP::RGBColor col, State state)
+    Particle() : Agent() { layer = 1; }
+    Particle(double x, double y, double size, EasyBMP::RGBColor col, State state)
         : Agent(x, y, size, col, state) {
         layer = 1;
         state = Healthy;
@@ -207,7 +207,7 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                           << std::endl;
                 return;
             case VirusType:
-                agent = new Virus();
+                agent = new Particle();
                 agent->size = 2;
                 agent->update();
                 break;

@@ -8,7 +8,7 @@
 
 double cellDeathChanceOvercrowding;
 
-unsigned long int virusIdCount;
+unsigned long int particleIdCount;
 
 SpaceTranslator spaceTrans;
 
@@ -19,12 +19,12 @@ Model::Model(std::string propsFile, int argc, char** argv,
     props = new repast::Properties(propsFile, argc, argv, comm);
     tickCycleLen = 6;
     // Contexts
-    contexts.virus = new repast::SharedContext<Virus>(comm);
+    contexts.part = new repast::SharedContext<Particle>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
 
     // Comms
-    comms.virusProv = new VirusPackageProvider(contexts.virus);
-    comms.virusRec = new VirusPackageReceiver(contexts.virus);
+    comms.partProv = new ParticlePackageProvider(contexts.part);
+    comms.partRec = new ParticlePackageReceiver(contexts.part);
     comms.cellProv = new CellPackageProvider(contexts.cell);
     comms.cellRec = new CellPackageReceiver(contexts.cell);
 
@@ -39,32 +39,32 @@ Model::Model(std::string propsFile, int argc, char** argv,
     processDims.push_back(std::stoi(props->getProperty("procDimsX")));
     processDims.push_back(std::stoi(props->getProperty("procDimsY")));
 
-    double virusAreaSize = 200;
+    double areaSize = 200;
 
-    repast::Point<double> vOrigin(0, 0);
-    repast::Point<double> vExtent(virusAreaSize, virusAreaSize);
+    repast::Point<double> pOrigin(0, 0);
+    repast::Point<double> pExtent(areaSize, areaSize);
 
     repast::Point<double> cOrigin(0, 0);
     repast::Point<double> cExtent(cellCount, cellCount);
 
     spaceTrans =
-        SpaceTranslator(vOrigin, vExtent, cOrigin, cExtent, virusAreaSize);
+        SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
 
     // Virus spaces
     {
-        repast::GridDimensions gd(vOrigin, vExtent);
+        repast::GridDimensions gd(pOrigin, pExtent);
 
-        spaces.virusCont =
-            new repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                              repast::SimpleAdder<Virus>>(
+        spaces.partCont =
+            new repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                              repast::SimpleAdder<Particle>>(
                 "AgentContinuousSpace", gd, processDims, 0, comm);
 
-        spaces.virusDisc =
-            new repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                            repast::SimpleAdder<Virus>>(
+        spaces.partDisc =
+            new repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                            repast::SimpleAdder<Particle>>(
                 "AgentDiscreteSpace", gd, processDims, 0, comm);
-        contexts.virus->addProjection(spaces.virusCont);
-        contexts.virus->addProjection(spaces.virusDisc);
+        contexts.part->addProjection(spaces.partCont);
+        contexts.part->addProjection(spaces.partDisc);
     }
 
     // Cell Space
@@ -103,16 +103,16 @@ void Model::init() {
 
     if (repast::RepastProcess::instance()->rank() == 0) {
         // Add viruses to model
-        double spawnOriginX = spaces.virusCont->dimensions().origin().getX(),
-               spawnOriginY = spaces.virusCont->dimensions().origin().getY();
+        double spawnOriginX = spaces.partCont->dimensions().origin().getX(),
+               spawnOriginY = spaces.partCont->dimensions().origin().getY();
 
-        double spawnSizeX = spaces.virusCont->dimensions().extents().getX(),
-               spawnSizeY = spaces.virusCont->dimensions().extents().getX();
-        virusIdCount = 0;
+        double spawnSizeX = spaces.partCont->dimensions().extents().getX(),
+               spawnSizeY = spaces.partCont->dimensions().extents().getX();
+        particleIdCount = 0;
         for (int i = 0; i < virusCount; i++) {
             double offsetX = spawnOriginX + randNum->nextDouble() * spawnSizeX,
                    offsetY = spawnOriginY + randNum->nextDouble() * spawnSizeY;
-            addVirus(repast::Point<double>(offsetX, offsetY));
+            addParticle(repast::Point<double>(offsetX, offsetY), VirusType);
         }
     }
 
@@ -135,7 +135,7 @@ void Model::init() {
                 contexts.cell->addAgent(agent);
                 spaces.cellDisc->moveTo(id, pos);
 
-                repast::Point<double> vPos = spaceTrans.cellToVir(pos);
+                repast::Point<double> vPos = spaceTrans.cellToPart(pos);
                 dataCol.newAgent(id);
                 dataCol.setPos(id, vPos.coords(), true);
                 dataCol.setState(id, agent->getState(), true);
@@ -190,7 +190,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
     runner.scheduleEvent(
         4, tickCycleLen,
         repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<Model>(this, &Model::collectVirusData)));
+            new repast::MethodFunctor<Model>(this, &Model::collectParticleData)));
 
     runner.scheduleEvent(
         4, tickCycleLen,
@@ -211,41 +211,41 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 }
 
 void Model::balanceAgents() {
-    // Virus
-    spaces.virusDisc->balance();
+    // Particle
+    spaces.partDisc->balance();
     repast::RepastProcess::instance()
-        ->synchronizeAgentStatus<Virus, VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec,
-            *comms.virusRec);
+        ->synchronizeAgentStatus<Particle, ParticlePackage, ParticlePackageProvider,
+                                 ParticlePackageReceiver>(
+            *contexts.part, *comms.partProv, *comms.partRec,
+            *comms.partRec);
 
     repast::RepastProcess::instance()
-        ->synchronizeProjectionInfo<Virus, VirusPackage, VirusPackageProvider,
-                                    VirusPackageReceiver>(
-            *contexts.virus, *comms.virusProv, *comms.virusRec,
-            *comms.virusRec);
+        ->synchronizeProjectionInfo<Particle, ParticlePackage, ParticlePackageProvider,
+                                    ParticlePackageReceiver>(
+            *contexts.part, *comms.partProv, *comms.partRec,
+            *comms.partRec);
 
     repast::RepastProcess::instance()
-        ->synchronizeAgentStates<VirusPackage, VirusPackageProvider,
-                                 VirusPackageReceiver>(*comms.virusProv,
-                                                       *comms.virusRec);
+        ->synchronizeAgentStates<ParticlePackage, ParticlePackageProvider,
+                                 ParticlePackageReceiver>(*comms.partProv,
+                                                       *comms.partRec);
 }
 
 void Model::move() {
-    std::vector<Virus*> agents;
+    std::vector<Particle*> agents;
 
-    if (contexts.virus->size() == 0) {
+    if (contexts.part->size() == 0) {
         balanceAgents();
         return;
     }
 
-    contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL, agents,
+    contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL, agents,
                                  false);
-    std::vector<Virus*>::iterator it = agents.begin();
+    std::vector<Particle*>::iterator it = agents.begin();
     it = agents.begin();
     std::vector<double> loc;
     while (it != agents.end()) {
-        (*it)->move(spaces.virusDisc, spaces.virusCont);
+        (*it)->move(spaces.partDisc, spaces.partCont);
         it++;
     }
 
@@ -269,18 +269,18 @@ void Model::interact() {
                                  CellPackageReceiver>(*comms.cellProv,
                                                       *comms.cellRec);
 
-    // Virus
-    if (contexts.virus->size() > 0) {
-        std::vector<Virus*> agents;
-        contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL,
+    // Particle
+    if (contexts.part->size() > 0) {
+        std::vector<Particle*> agents;
+        contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
                                      agents);
-        std::vector<Virus*> killList;
+        std::vector<Particle*> killList;
         {
-            std::vector<Virus*>::iterator it = agents.begin();
+            std::vector<Particle*>::iterator it = agents.begin();
             while (it != agents.end()) {
                 bool isAlive = true;
-                (*it)->interact(contexts.virus, spaces.virusDisc,
-                                spaces.virusCont, isAlive);
+                (*it)->interact(contexts.part, spaces.partDisc,
+                                spaces.partCont, isAlive);
                 if (!isAlive) {
                     killList.push_back((*it));
                 }
@@ -288,9 +288,9 @@ void Model::interact() {
             }
         }
 
-        std::vector<Virus*>::iterator it = killList.begin();
+        std::vector<Particle*>::iterator it = killList.begin();
         while (it != killList.end()) {
-            removeVirus(*it);
+            removeParticle(*it);
             it++;
         }
     }
@@ -304,22 +304,22 @@ void Model::interact() {
     {
         std::vector<Cell*> agents;
         contexts.cell->selectAgents(repast::SharedContext<Cell>::LOCAL, agents);
-        std::vector<repast::Point<double>> virusToAdd;
-        std::set<Virus*> virusToRemove;
+        std::vector<std::tuple<repast::Point<double>, AgentType>> partToAdd;
+        std::set<Particle*> partToRemove;
         {
             std::vector<Cell*>::iterator it = agents.begin();
             while (it != agents.end()) {
                 (*it)->interact(contexts.cell, spaces.cellDisc,
-                                spaces.virusDisc, &virusToAdd, &virusToRemove);
+                                spaces.partDisc, &partToAdd, &partToRemove);
                 it++;
             }
         }
 
-        // Remove viruses that enter cells
+        // Remove particles that enter cells
         {
-            std::set<Virus*>::iterator it = virusToRemove.begin();
-            while (it != virusToRemove.end()) {
-                removeVirus(*it);
+            std::set<Particle*>::iterator it = partToRemove.begin();
+            while (it != partToRemove.end()) {
+                removeParticle(*it);
                 it++;
             }
             /*
@@ -330,12 +330,12 @@ void Model::interact() {
                     *comms.cellRec);*/
         }
 
-        // Add new viruses from infected cells
+        // Add new particles from infected cells
         {
-            std::vector<repast::Point<double>>::iterator it =
-                virusToAdd.begin();
-            while (it != virusToAdd.end()) {
-                addVirus((*it));
+            std::vector<std::tuple<repast::Point<double>, AgentType>>::iterator it =
+                partToAdd.begin();
+            while (it != partToAdd.end()) {
+                addParticle(std::get<0>(*it), std::get<1>(*it));
                 it++;
             }
         }
@@ -354,29 +354,33 @@ void Model::interact() {
     balanceAgents();
 }
 
-void Model::addVirus(repast::Point<double> loc) {
+void Model::addParticle(repast::Point<double> loc, AgentType t) {
     int rank = repast::RepastProcess::instance()->rank();
     repast::Random* randNum = repast::Random::instance();
     repast::Point<int> locDisc((int)loc[0], (int)loc[1]);
-    repast::AgentId id(virusIdCount, rank, agentTypeToInt(VirusType));
+    repast::AgentId id(particleIdCount, rank, agentTypeToInt(t));
     id.currentRank(rank);
 
     Vector vel;
     vel.x = randNum->nextDouble() - 0.5;
     vel.y = randNum->nextDouble() - 0.5;
 
-    Virus* agent = new Virus(
-        id, vel,
+    Particle* agent = new Particle(
+        id, t, vel,
         repast::RepastProcess::instance()->getScheduleRunner().currentTick());
-    agent->addAttatchFactor(0);
+    
+    if(t == VirusType){
+        agent->addAttatchFactor(REC_CELL);
+    }
 
-    contexts.virus->addAgent(agent);
-    spaces.virusCont->moveTo(id, loc);
-    spaces.virusDisc->moveTo(id, locDisc);
+
+    contexts.part->addAgent(agent);
+    spaces.partCont->moveTo(id, loc);
+    spaces.partDisc->moveTo(id, locDisc);
 
     dataCol.newAgent(id);
     dataCol.setPos(id, loc.coords(), true);
-    virusIdCount++;
+    particleIdCount++;
 
     /* For debugging
     cout << "ADDING " << agent->getId() << " ON TICK "
@@ -388,7 +392,7 @@ void Model::addVirus(repast::Point<double> loc) {
     */
 }
 
-void Model::removeVirus(Virus* v) {
+void Model::removeParticle(Particle* v) {
     /* For debugging
     std::vector<double> loc;
     spaces.virusCont->getLocation(v->getId(), loc);
@@ -403,26 +407,26 @@ void Model::removeVirus(Virus* v) {
     repast::AgentId id = v->getId();
 
     dataCol.killAgent(id);
-    contexts.virus->removeAgent(v);
+    contexts.part->removeAgent(v);
     repast::RepastProcess::instance()->agentRemoved(id);
 }
 
-void Model::collectVirusData() {
+void Model::collectParticleData() {
     //  Array of tuples
     //  Tuple is id, start rank, is in this proc, x, y and state
     std::vector<std::tuple<repast::AgentId, double, double, int>> out;
 
     // If there are any viruses to log data for
-    if (contexts.virus->size() != 0) {
-        std::vector<Virus*> agents;
-        contexts.virus->selectAgents(repast::SharedContext<Virus>::LOCAL,
+    if (contexts.part->size() != 0) {
+        std::vector<Particle*> agents;
+        contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
                                      agents);
-        std::vector<Virus*>::iterator it = agents.begin();
+        std::vector<Particle*>::iterator it = agents.begin();
         // Iterate threw and get the location of them all
         while (it != agents.end()) {
-            Virus* a = (*it);
+            Particle* a = (*it);
             std::vector<double> loc;
-            spaces.virusCont->getLocation(a->getId(), loc);
+            spaces.partCont->getLocation(a->getId(), loc);
 
             out.push_back(std::make_tuple(a->getId(), loc[0], loc[1], 1));
 
@@ -487,10 +491,10 @@ void Model::printAgentCounters() {
     if (repast::RepastProcess::instance()->rank() != 0) {
         return;
     }
-    std::vector<Virus*> agents;
-    contexts.virus->selectAgents(agents, false);
+    std::vector<Particle*> agents;
+    contexts.part->selectAgents(agents, false);
 
-    std::vector<Virus*>::iterator it = agents.begin();
+    std::vector<Particle*>::iterator it = agents.begin();
     while (it != agents.end()) {
         std::cout << "Agent " << (*it)->getId() << " Value " << std::endl;
         it++;

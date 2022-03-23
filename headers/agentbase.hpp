@@ -15,11 +15,11 @@ class AgentBase {
     double birthTick;
     std::vector<int> attFactors;  // Attatchment factors
     int receptorType;
+    AgentType agentType;
 
    public:
     Vector vel;
     repast::AgentId id;
-    AgentType agentType;
 
     AgentBase() {
         vel.x = 0;
@@ -31,8 +31,9 @@ class AgentBase {
     AgentBase(repast::AgentId id, Vector vel) {
         this->id = id;
         this->vel = vel;
-        this->agentType = BaseAgentType;
-        this->birthTick = 0;
+        agentType = BaseAgentType;
+        birthTick = 0;
+        receptorType = 0;
     }
 
     virtual ~AgentBase() {}
@@ -43,8 +44,12 @@ class AgentBase {
 
     // Getter for agent specific attributes
     Vector getVel() { return vel; }
+    AgentType getAgentType() { return agentType; }
 
-    void set(repast::AgentId id, Vector vel, int birthTick, int receptorType, std::vector<int> attFactors) {
+    void setAgentType(AgentType agentType) { this->agentType = agentType; }
+
+    void set(repast::AgentId id, AgentType type, Vector vel, int birthTick,
+             int receptorType, std::vector<int> attFactors) {
         this->id = id;
         this->vel = vel;
         this->birthTick = birthTick;
@@ -75,18 +80,18 @@ class AgentBase {
         repast::SharedContext<AgentBase>* context,
         repast::SharedDiscreteSpace<AgentBase, repast::StrictBorders,
                                     repast::SimpleAdder<AgentBase>>*
-            virusDiscreteSpace,
+            partDiscreteSpace,
         repast::SharedContinuousSpace<AgentBase, repast::StrictBorders,
                                       repast::SimpleAdder<AgentBase>>*
-            virusContinSpace){};
+            partContinSpace){};
     // Moves the agent
     virtual void move(
         repast::SharedDiscreteSpace<AgentBase, repast::StrictBorders,
                                     repast::SimpleAdder<AgentBase>>*
-            virusDiscreteSpace,
+            partDiscreteSpace,
         repast::SharedContinuousSpace<AgentBase, repast::StrictBorders,
                                       repast::SimpleAdder<AgentBase>>*
-            virusContinSpace){};
+            partContinSpace){};
 };
 
 #endif

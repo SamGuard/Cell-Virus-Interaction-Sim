@@ -10,9 +10,12 @@
 enum AgentType { BaseAgentType, VirusType, CellType };
 
 extern double cellDeathChanceOvercrowding;
-extern unsigned long int virusIdCount;
+extern unsigned long int particleIdCount;
 extern double tickCycleLen;  // The amount of ticks for one full cycle of every
                              // action ( this is to give order to action)
+// Receptor/Attatchment Types
+#define REC_VIRUS 1
+#define REC_CELL 2
 
 struct Vector {
     double x, y;
@@ -35,31 +38,31 @@ inline int agentTypeToInt(AgentType t) {
 }
 
 class SpaceTranslator {
-    std::vector<double> cellVirOffset;
-    std::vector<double> cellVirScale;
+    std::vector<double> cellPartOffset;
+    std::vector<double> cellPartScale;
     double _cellSize;
 
    public:
     SpaceTranslator() {
-        cellVirOffset.push_back(0);
-        cellVirOffset.push_back(0);
+        cellPartOffset.push_back(0);
+        cellPartOffset.push_back(0);
 
-        cellVirScale.push_back(0);
-        cellVirScale.push_back(0);
+        cellPartScale.push_back(0);
+        cellPartScale.push_back(0);
         _cellSize = 0;
     }
-    SpaceTranslator(repast::Point<double> virOrigin,
-                    repast::Point<double> virExtent,
+    SpaceTranslator(repast::Point<double> partOrigin,
+                    repast::Point<double> partExtent,
                     repast::Point<double> cellOrigin,
                     repast::Point<double> cellExtent, double areaSize) {
-        cellVirOffset = std::vector<double>();
-        cellVirScale = std::vector<double>();
+        cellPartOffset = std::vector<double>();
+        cellPartScale = std::vector<double>();
 
-        cellVirOffset.push_back(virOrigin[0] - cellOrigin[0]);
-        cellVirOffset.push_back(virOrigin[1] - cellOrigin[1]);
+        cellPartOffset.push_back(partOrigin[0] - cellOrigin[0]);
+        cellPartOffset.push_back(partOrigin[1] - cellOrigin[1]);
 
-        cellVirScale.push_back(virExtent[0] / (double)cellExtent[0]);
-        cellVirScale.push_back(virExtent[1] / (double)cellExtent[1]);
+        cellPartScale.push_back(partExtent[0] / (double)cellExtent[0]);
+        cellPartScale.push_back(partExtent[1] / (double)cellExtent[1]);
 
         _cellSize = areaSize / cellExtent[0];
     }
@@ -68,22 +71,22 @@ class SpaceTranslator {
 
     repast::Point<int> virToCell(repast::Point<double> in) {
         repast::Point<int> out(
-            (in[0] - cellVirOffset[0]) / cellVirScale[0] - 0.5,
-            (in[1] - cellVirOffset[1]) / cellVirScale[1] - 0.5);
+            (in[0] - cellPartOffset[0]) / cellPartScale[0] - 0.5,
+            (in[1] - cellPartOffset[1]) / cellPartScale[1] - 0.5);
 
         return out;
     }
 
-    repast::Point<double> cellToVir(repast::Point<int> in) {
+    repast::Point<double> cellToPart(repast::Point<int> in) {
         repast::Point<double> out(
-            ((double)in[0] + 0.5) * cellVirScale[0] + cellVirOffset[0],
-            ((double)in[1] + 0.5) * cellVirScale[1] + cellVirOffset[1]);
+            ((double)in[0] + 0.5) * cellPartScale[0] + cellPartOffset[0],
+            ((double)in[1] + 0.5) * cellPartScale[1] + cellPartOffset[1]);
 
         return out;
     }
 
-    repast::Point<int> cellToVirDisc(repast::Point<int> in) {
-        repast::Point<double> p = cellToVir(in);
+    repast::Point<int> cellToPartDisc(repast::Point<int> in) {
+        repast::Point<double> p = cellToPart(in);
 
         repast::Point<int> out((int)p[0], (int)p[1]);
         return out;

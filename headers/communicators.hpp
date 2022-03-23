@@ -1,33 +1,33 @@
 #include "agentbase.hpp"
 #include "cell.hpp"
 #include "repast_hpc/Context.h"
-#include "virus.hpp"
+#include "particle.hpp"
 
 /* Agent Package Provider */
-class VirusPackageProvider {
+class ParticlePackageProvider {
    private:
-    repast::SharedContext<Virus>* agents;
+    repast::SharedContext<Particle>* agents;
 
    public:
-    VirusPackageProvider(repast::SharedContext<Virus>* agentPtr);
+    ParticlePackageProvider(repast::SharedContext<Particle>* agentPtr);
 
-    void providePackage(Virus* agent, std::vector<VirusPackage>& out);
+    void providePackage(Particle* agent, std::vector<ParticlePackage>& out);
 
     void provideContent(repast::AgentRequest req,
-                        std::vector<VirusPackage>& out);
+                        std::vector<ParticlePackage>& out);
 };
 
 /* Agent Package Receiver */
-class VirusPackageReceiver {
+class ParticlePackageReceiver {
    private:
-    repast::SharedContext<Virus>* agents;
+    repast::SharedContext<Particle>* agents;
 
    public:
-    VirusPackageReceiver(repast::SharedContext<Virus>* agentPtr);
+    ParticlePackageReceiver(repast::SharedContext<Particle>* agentPtr);
 
-    Virus* createAgent(VirusPackage package);
+    Particle* createAgent(ParticlePackage package);
 
-    void updateAgent(VirusPackage package);
+    void updateAgent(ParticlePackage package);
 };
 
 /* Agent Package Provider */

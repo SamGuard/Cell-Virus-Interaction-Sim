@@ -21,26 +21,26 @@
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
 #include "repast_hpc/TDataSource.h"
-#include "virus.hpp"
+#include "particle.hpp"
 
 struct AgentContexts {
-    repast::SharedContext<Virus>* virus;
+    repast::SharedContext<Particle>* part;
     repast::SharedContext<Cell>* cell;
 };
 
 struct AgentSpaces {
-    repast::SharedContinuousSpace<Virus, repast::StrictBorders,
-                                  repast::SimpleAdder<Virus>>* virusCont;
-    repast::SharedDiscreteSpace<Virus, repast::StrictBorders,
-                                repast::SimpleAdder<Virus>>* virusDisc;
+    repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                  repast::SimpleAdder<Particle>>* partCont;
+    repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                repast::SimpleAdder<Particle>>* partDisc;
 
     repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
                                 repast::SimpleAdder<Cell>>* cellDisc;
 };
 
 struct AgentComm {
-    VirusPackageProvider* virusProv;
-    VirusPackageReceiver* virusRec;
+    ParticlePackageProvider* partProv;
+    ParticlePackageReceiver* partRec;
 
     CellPackageProvider* cellProv;
     CellPackageReceiver* cellRec;
@@ -71,12 +71,12 @@ class Model {
     void initSchedule(repast::ScheduleRunner& runner);
     void balanceAgents();
 
-    void addVirus(repast::Point<double> loc);
-    void removeVirus(Virus* v);
+    void addParticle(repast::Point<double> loc,  AgentType t);
+    void removeParticle(Particle* v);
 
     void move();
     void interact();
-    void collectVirusData();
+    void collectParticleData();
     void collectCellData();
     void outputTick();
     void printTick();
