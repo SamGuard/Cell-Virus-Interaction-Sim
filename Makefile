@@ -25,7 +25,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 
 build_vis: ./data_visualiser/vis_main.hpp
 	cd ./data_visualiser \
-	&& g++ vis_main.cpp -o vis_main -lsfml-graphics
+	&& g++ vis_main.cpp -o vis_main -lsfml-graphics -g -O3 -Wall -Wextra
 
 del_data:
 	- rm ./output/*
