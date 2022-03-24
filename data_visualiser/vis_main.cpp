@@ -1,18 +1,17 @@
 #include <math.h>
 
+#include <SFML/Graphics.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "EasyBMP.hpp"
-
 const int NUM_PROCS = 4;
-const int NUM_CELLS = 16;
+const int NUM_CELLS = 32;
 const int WIDTH = 1280;
 const int HEIGHT = 1280;
-const double CELL_SIZE = 1280 / NUM_CELLS;
+const double CELL_SIZE = WIDTH / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
 const int MAX_LAYERS = 2;
@@ -27,7 +26,7 @@ void transformPoints(double &x, double &y) {
 
 class Agent {
    protected:
-    EasyBMP::RGBColor col;
+    sf::Color col;
     int layer;
 
    public:
@@ -36,15 +35,15 @@ class Agent {
 
     Agent() {
         x = y = 0;
-        size = 30;
+        size = 15;
         layer = 0;
-        col = EasyBMP::RGBColor(255, 255, 255);
+        col = sf::Color(255, 255, 255);
         state = Healthy;
     }
 
-    Agent(double x, double y, double size, EasyBMP::RGBColor col, State state)
+    Agent(double x, double y, double size, sf::Color col, State state)
         : x(x), y(y), size(size), state(state) {
-        col = EasyBMP::RGBColor(255, 255, 255);
+        col = sf::Color(255, 255, 255);
         update();
     }
 
@@ -62,85 +61,81 @@ class Agent {
 
     virtual void update() {}
 
-    virtual void draw(EasyBMP::Image *img) = 0;
+    virtual void draw(sf::RenderTexture *img) = 0;
 };
 
 class Particle : public Agent {
+   protected:
+    sf::CircleShape shape;
+
    public:
     Particle() : Agent() { layer = 1; }
-    Particle(double x, double y, double size, EasyBMP::RGBColor col, State state)
+    Particle(double x, double y, double size, sf::Color col, State state)
         : Agent(x, y, size, col, state) {
         layer = 1;
         state = Healthy;
+        shape = sf::CircleShape(size * SCALE);
     }
 
     void update() {
         if (state != Healthy) {
             std::cout << "Invalid virus state " << state << std::endl;
         }
-        this->col = EasyBMP::RGBColor(255, 0, 0);
+        col = sf::Color(255, 0, 0);
+        shape.setFillColor(col);
     }
 
-    void draw(EasyBMP::Image *img) {
-        static const double PI = 3.1415926535;
-        double i, angle, x1, y1;
-        int rad = size * SCALE;
-
+    void draw(sf::RenderTexture *img) {
+        double x1, y1;
         x1 = x;
         y1 = y;
         transformPoints(x1, y1);
-        img->DrawCircle(x1, y1, rad, col, true);
+        shape.setPosition(x1, y1);
+        img->draw(shape);
     }
 };
 
 class Cell : public Agent {
+   protected:
+    sf::RectangleShape shape;
+
    public:
     Cell() : Agent() { layer = 0; }
-    Cell(double x, double y, double size, EasyBMP::RGBColor col, State state)
+    Cell(double x, double y, double size, sf::Color col, State state)
         : Agent(x, y, size, col, state) {
         layer = 0;
+        sf::Vector2f s(size, size);
+        shape = sf::RectangleShape(s);
     }
 
     void update() {
         switch (state) {
             case Dead:
-                col = EasyBMP::RGBColor(0, 0, 0);
+                col = sf::Color(0, 0, 0);
+                break;
             case Healthy:
-                col = EasyBMP::RGBColor(255, 255, 255);
+                col = sf::Color(255, 255, 255);
                 break;
             case Infected:
-                col = EasyBMP::RGBColor(95, 36, 95);
+                col = sf::Color(95, 36, 95);
                 break;
             case Empty:
-                col = EasyBMP::RGBColor(64, 64, 64);
+                col = sf::Color(64, 64, 64);
                 break;
             default:
                 std::cout << "Invalid Cell state" << std::endl;
                 break;
         }
+        shape.setFillColor(col);
     }
 
-    void draw(EasyBMP::Image *img) {
+    void draw(sf::RenderTexture *img) {
         double x0, y0;
         x0 = x;
         y0 = y;
         transformPoints(x0, y0);
-        int size = this->size;
-
-        if (x0 + size < 0 && x0 - size > WIDTH - 1 && y0 + size < 0 &&
-            y0 - size > HEIGHT - 1) {
-            return;
-        }
-
-        for (int row = 0; row < size; row++) {
-            double x1, x2, y1;
-            y1 = y0 - size / 2 + row;
-            if (!img->isValidCoordinate(0, y1)) return;
-            x1 = std::max(x0 - size, 0.0);
-            x2 = std::min(x0 + size, WIDTH - 1.0);
-
-            img->DrawLine(x1, y1, x2, y1, col);
-        }
+        shape.setPosition(x0 - size / 2, y0 - size / 2);
+        img->draw(shape);
     }
 };
 
@@ -207,14 +202,11 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                           << std::endl;
                 return;
             case VirusType:
-                agent = new Particle();
-                agent->size = 2;
+                agent = new Particle(0, 0, 2, sf::Color(), Healthy);
                 agent->update();
                 break;
             case CellType:
-                agent = new Cell();
-                agent->size = CELL_SIZE;
-                agent->state = Healthy;
+                agent = new Cell(0, 0, CELL_SIZE, sf::Color(), Healthy);
                 agent->update();
                 break;
             default:
@@ -272,8 +264,8 @@ void setStateOfAgent(std::string payload,
             return;
         }
         if (vals.size() != 4) {
-            std::cout << "Invalid entry for set agent state: " << s << " size of "
-                      << vals.size() << std::endl;
+            std::cout << "Invalid entry for set agent state: " << s
+                      << " size of " << vals.size() << std::endl;
             return;
         }
         int agentId = std::stoi(vals[0]);
@@ -283,13 +275,13 @@ void setStateOfAgent(std::string payload,
 
         std::string id = makeID(agentId, sProc, type);
 
-        Agent* a = agents[id];
+        Agent *a = agents[id];
         a->setState((State)state);
         a->update();
     }
 }
 
-void draw(std::map<std::string, Agent *> agents, EasyBMP::Image *img) {
+void draw(std::map<std::string, Agent *> agents, sf::RenderTexture *img) {
     for (int layer = 0; layer < MAX_LAYERS; layer++) {
         for (std::map<std::string, Agent *>::iterator it = agents.begin();
              it != agents.end(); it++) {
@@ -306,7 +298,8 @@ void mainLoop() {
 
     std::map<std::string, Agent *> agents;
 
-    EasyBMP::Image *img = new EasyBMP::Image(WIDTH, HEIGHT);
+    sf::RenderTexture *img = new sf::RenderTexture();
+    img->create(WIDTH, HEIGHT);
     int cReader = 0;
     int currentTick = 0;
     std::string line;
@@ -341,10 +334,10 @@ void mainLoop() {
                 draw(agents, img);
                 std::string fileName = "./images/tick_";
                 fileName.append(std::to_string(currentTick));
-                fileName.append(".bmp");
-                img->Write(fileName);
-                delete img;
-                img = new EasyBMP::Image(WIDTH, HEIGHT);
+                fileName.append(".png");
+                img->display();
+                img->getTexture().copyToImage().saveToFile(fileName);
+                img->clear();
                 currentTick++;
                 std::cout << "Tick: " << currentTick << std::endl;
             }

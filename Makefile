@@ -23,9 +23,9 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 
 ./data_visualiser/vis_main.cpp:
 
-build_vis: ./data_visualiser/EasyBMP.hpp ./data_visualiser/vis_main.hpp
+build_vis: ./data_visualiser/vis_main.hpp
 	cd ./data_visualiser \
-	&& g++ vis_main.cpp -o vis_main
+	&& g++ vis_main.cpp -o vis_main -lsfml-graphics
 
 del_data:
 	- rm ./output/*
@@ -49,6 +49,6 @@ run_vis:
 
 movie:
 	cd ./data_visualiser/; \
-	ffmpeg -framerate 20 -i ./images/tick_%00d.bmp -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p output.mp4
+	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p output.mp4
 
 full: build build_vis run run_vis movie	
