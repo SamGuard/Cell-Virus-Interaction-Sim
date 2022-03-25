@@ -10,6 +10,6 @@ REPAST_HPC_LIB=-lrepast_hpc-2.3.1
 
 COMP_FLAGS=-Wall -g
 
-procDimsX=6
-procDimsY=5
-NUM_PROCS=30
+procDimsX=2
+procDimsY=2
+NUM_PROCS=4

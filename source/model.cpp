@@ -47,8 +47,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
     repast::Point<double> cOrigin(0, 0);
     repast::Point<double> cExtent(cellCount, cellCount);
 
-    spaceTrans =
-        SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
+    spaceTrans = SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
 
     // Virus spaces
     {
@@ -131,7 +130,6 @@ void Model::init() {
                                    agentTypeToInt(CellType));
                 Cell* agent = new Cell(id, Healthy);
 
-
                 contexts.cell->addAgent(agent);
                 spaces.cellDisc->moveTo(id, pos);
 
@@ -189,8 +187,8 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 
     runner.scheduleEvent(
         4, tickCycleLen,
-        repast::Schedule::FunctorPtr(
-            new repast::MethodFunctor<Model>(this, &Model::collectParticleData)));
+        repast::Schedule::FunctorPtr(new repast::MethodFunctor<Model>(
+            this, &Model::collectParticleData)));
 
     runner.scheduleEvent(
         4, tickCycleLen,
@@ -214,21 +212,21 @@ void Model::balanceAgents() {
     // Particle
     spaces.partDisc->balance();
     repast::RepastProcess::instance()
-        ->synchronizeAgentStatus<Particle, ParticlePackage, ParticlePackageProvider,
+        ->synchronizeAgentStatus<Particle, ParticlePackage,
+                                 ParticlePackageProvider,
                                  ParticlePackageReceiver>(
-            *contexts.part, *comms.partProv, *comms.partRec,
-            *comms.partRec);
+            *contexts.part, *comms.partProv, *comms.partRec, *comms.partRec);
 
     repast::RepastProcess::instance()
-        ->synchronizeProjectionInfo<Particle, ParticlePackage, ParticlePackageProvider,
+        ->synchronizeProjectionInfo<Particle, ParticlePackage,
+                                    ParticlePackageProvider,
                                     ParticlePackageReceiver>(
-            *contexts.part, *comms.partProv, *comms.partRec,
-            *comms.partRec);
+            *contexts.part, *comms.partProv, *comms.partRec, *comms.partRec);
 
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<ParticlePackage, ParticlePackageProvider,
                                  ParticlePackageReceiver>(*comms.partProv,
-                                                       *comms.partRec);
+                                                          *comms.partRec);
 }
 
 void Model::move() {
@@ -240,7 +238,7 @@ void Model::move() {
     }
 
     contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL, agents,
-                                 false);
+                                false);
     std::vector<Particle*>::iterator it = agents.begin();
     it = agents.begin();
     std::vector<double> loc;
@@ -273,14 +271,14 @@ void Model::interact() {
     if (contexts.part->size() > 0) {
         std::vector<Particle*> agents;
         contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
-                                     agents);
+                                    agents);
         std::vector<Particle*> killList;
         {
             std::vector<Particle*>::iterator it = agents.begin();
             while (it != agents.end()) {
                 bool isAlive = true;
-                (*it)->interact(contexts.part, spaces.partDisc,
-                                spaces.partCont, isAlive);
+                (*it)->interact(contexts.part, spaces.partDisc, spaces.partCont,
+                                isAlive);
                 if (!isAlive) {
                     killList.push_back((*it));
                 }
@@ -309,8 +307,8 @@ void Model::interact() {
         {
             std::vector<Cell*>::iterator it = agents.begin();
             while (it != agents.end()) {
-                (*it)->interact(contexts.cell, spaces.cellDisc,
-                                spaces.partDisc, &partToAdd, &partToRemove);
+                (*it)->interact(contexts.cell, spaces.cellDisc, spaces.partDisc,
+                                &partToAdd, &partToRemove);
                 it++;
             }
         }
@@ -332,8 +330,8 @@ void Model::interact() {
 
         // Add new particles from infected cells
         {
-            std::vector<std::tuple<repast::Point<double>, AgentType>>::iterator it =
-                partToAdd.begin();
+            std::vector<std::tuple<repast::Point<double>, AgentType>>::iterator
+                it = partToAdd.begin();
             while (it != partToAdd.end()) {
                 addParticle(std::get<0>(*it), std::get<1>(*it));
                 it++;
@@ -365,14 +363,20 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
     vel.x = randNum->nextDouble() - 0.5;
     vel.y = randNum->nextDouble() - 0.5;
 
-    Particle* agent = new Particle(
-        id, t, vel,
-        repast::RepastProcess::instance()->getScheduleRunner().currentTick());
-    
-    if(t == VirusType){
-        agent->addAttatchFactor(REC_CELL);
-    }
+    Particle* agent;
 
+    switch (t) {
+        case VirusType:
+            agent = new Virus(id, vel,
+                              repast::RepastProcess::instance()
+                                  ->getScheduleRunner()
+                                  .currentTick());
+                                   agent->addAttatchFactor(REC_CELL);
+            break;
+        default:
+            std::cout << "Invalid particle type" << std::endl;
+            return;
+    }
 
     contexts.part->addAgent(agent);
     spaces.partCont->moveTo(id, loc);
@@ -420,7 +424,7 @@ void Model::collectParticleData() {
     if (contexts.part->size() != 0) {
         std::vector<Particle*> agents;
         contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
-                                     agents);
+                                    agents);
         std::vector<Particle*>::iterator it = agents.begin();
         // Iterate threw and get the location of them all
         while (it != agents.end()) {

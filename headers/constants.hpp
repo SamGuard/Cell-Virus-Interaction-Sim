@@ -7,7 +7,7 @@
 #include "repast_hpc/Point.h"
 #include "repast_hpc/Properties.h"
 
-enum AgentType { BaseAgentType, VirusType, CellType };
+enum AgentType { BaseAgentType, VirusType, CellType, InterferonType };
 
 extern double cellDeathChanceOvercrowding;
 extern unsigned long int particleIdCount;

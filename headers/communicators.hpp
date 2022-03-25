@@ -1,7 +1,7 @@
 #include "agentbase.hpp"
 #include "cell.hpp"
-#include "repast_hpc/Context.h"
 #include "particle.hpp"
+#include "repast_hpc/Context.h"
 
 /* Agent Package Provider */
 class ParticlePackageProvider {

@@ -10,6 +10,7 @@
 
 #include "communicators.hpp"
 #include "data_collector.hpp"
+#include "particle.hpp"
 #include "repast_hpc/AgentRequest.h"
 #include "repast_hpc/GridComponents.h"
 #include "repast_hpc/Properties.h"
@@ -21,7 +22,6 @@
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
 #include "repast_hpc/TDataSource.h"
-#include "particle.hpp"
 
 struct AgentContexts {
     repast::SharedContext<Particle>* part;
@@ -71,7 +71,7 @@ class Model {
     void initSchedule(repast::ScheduleRunner& runner);
     void balanceAgents();
 
-    void addParticle(repast::Point<double> loc,  AgentType t);
+    void addParticle(repast::Point<double> loc, AgentType t);
     void removeParticle(Particle* v);
 
     void move();

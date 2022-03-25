@@ -15,17 +15,18 @@
 class Cell;
 
 class Particle : public AgentBase {
-   public:
+   protected:
     Particle() : AgentBase() {}
-
     Particle(repast::AgentId id, Vector vel) : AgentBase(id, vel) {}
 
-    Particle(repast::AgentId id,  AgentType agentType, Vector vel, double birthTick)
+    Particle(repast::AgentId id, AgentType agentType, Vector vel,
+             double birthTick)
         : Particle(id, vel) {
         this->birthTick = birthTick;
         this->agentType = agentType;
     }
 
+   public:
     // Getter for agent specific attributes
     inline Vector getVel() { return vel; }
     inline double getBirthTick() { return birthTick; }
@@ -46,6 +47,19 @@ class Particle : public AgentBase {
               repast::SharedContinuousSpace<Particle, repast::StrictBorders,
                                             repast::SimpleAdder<Particle>>*
                   partContinSpace);
+};
+
+
+class Virus : public Particle {
+   public:
+    Virus(repast::AgentId id, Vector vel, double birthTick)
+        : Particle(id, VirusType, vel, birthTick) {}
+};
+
+class Interferon : public Particle {
+   public:
+    Interferon(repast::AgentId id, Vector vel, double birthTick)
+        : Particle(id, InterferonType, vel, birthTick) {}
 };
 
 /* Serializable Agent Package */
