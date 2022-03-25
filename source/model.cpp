@@ -62,7 +62,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
         spaces.partDisc =
             new repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
                                             repast::SimpleAdder<Particle>>(
-                "AgentDiscreteSpace", gd, processDims, 0, comm);
+                "AgentDiscreteSpace", gd, processDims, 1, comm);
         contexts.part->addProjection(spaces.partCont);
         contexts.part->addProjection(spaces.partDisc);
     }
