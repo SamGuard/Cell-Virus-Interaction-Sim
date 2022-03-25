@@ -9,8 +9,8 @@
 
 const int NUM_PROCS = 4;
 const int NUM_CELLS = 32;
-const int WIDTH = 1280;
-const int HEIGHT = 1280;
+const int WIDTH = 600;
+const int HEIGHT = 600;
 const double CELL_SIZE = WIDTH / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
@@ -106,6 +106,7 @@ class Cell : public Agent {
         layer = 0;
         sf::Vector2f s(size, size);
         shape = sf::RectangleShape(s);
+        shape.setOutlineThickness(0);
     }
 
     void update() {

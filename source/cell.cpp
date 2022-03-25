@@ -13,7 +13,7 @@ void Cell::interact(
     repast::Random* rand = repast::Random::instance();
     double currentTick =
         repast::RepastProcess::instance()->getScheduleRunner().currentTick() /
-        6;
+        tickCycleLen;
 
     if (getState() == Dead) {
         if (getDeathTick() + 200 < currentTick) {
@@ -75,13 +75,17 @@ void Cell::interact(
             // As well as checking if the receptors/attatchment factors match
             bool canFindVirus = false;
             std::vector<Particle*>::iterator it = agents.begin();
+
             while (it != agents.end()) {
                 // Check the particle returned is a virus
-                if ((*it)->getAgentType() == VirusType &&
-                    (*it)->canAttach(receptorType) &&
-                    remove->find(*it) == remove->end()) {
+                Particle* p = *it;
+                if (p->getAgentType() == VirusType &&
+                    p->canAttach(receptorType) &&
+                    p->getId().currentRank() ==
+                        repast::RepastProcess::instance()->rank() &&
+                    remove->find(p) == remove->end()) {
                     canFindVirus = true;
-                    remove->insert(*it);
+                    remove->insert(p);
                     break;
                 }
                 it++;
@@ -95,8 +99,9 @@ void Cell::interact(
 
     if (getState() == Infected) {
         if (rand->nextDouble() < 0.1) {
-            for(int i = 0; i < 2; i++){
-                add->push_back(std::tuple<repast::Point<double>, AgentType>(spaceTrans.cellToPart(loc), VirusType));
+            for (int i = 0; i < 2; i++) {
+                add->push_back(std::tuple<repast::Point<double>, AgentType>(
+                    spaceTrans.cellToPart(loc), VirusType));
             }
             setNextState(Dead);
             return;

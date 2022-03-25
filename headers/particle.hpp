@@ -58,7 +58,7 @@ struct ParticlePackage {
     /* Constructors */
     ParticlePackage();  // For serialization
     ParticlePackage(int _id, int _rank, int _type, int _currentRank,
-                    int receptorType, double _velx, double _vely,
+                    int _receptorType, double _velx, double _vely,
                     double _birthTick, std::vector<int> _attFactors);
 
     /* For archive packaging */
