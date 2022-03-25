@@ -39,7 +39,7 @@ Particle* ParticlePackageReceiver::createAgent(ParticlePackage package) {
 }
 
 void ParticlePackageReceiver::updateAgent(ParticlePackage package) {
-    repast::AgentId id(package.id, package.rank, package.type);
+    repast::AgentId id(package.id, package.rank, package.type, package.currentRank);
     Particle* agent = agents->getAgent(id);
     Vector v;
     v.x = package.velx;
