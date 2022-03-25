@@ -7,17 +7,17 @@
 #include <string>
 #include <vector>
 
-const int NUM_PROCS = 32;
-const int NUM_CELLS = 1024;
-const int WIDTH = 1024;
-const int HEIGHT = 1024;
+const int NUM_PROCS = 4;
+const int NUM_CELLS = 32;
+const int WIDTH = 600;
+const int HEIGHT = 600;
 const double CELL_SIZE = WIDTH / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
 const int MAX_LAYERS = 2;
 
-enum State { Dead, Healthy, Infected, Empty };
-enum AgentTypes { BaseAgentType, VirusType, CellType };
+enum State { Dead, Healthy, Infected, Empty, Bystander };
+enum AgentTypes { BaseAgentType, VirusType, CellType, InterferonType };
 
 void transformPoints(double &x, double &y) {
     x *= SCALE;
@@ -67,22 +67,36 @@ class Agent {
 class Particle : public Agent {
    protected:
     sf::CircleShape shape;
+    AgentTypes t;
 
    public:
     Particle() : Agent() { layer = 1; }
-    Particle(double x, double y, double size, sf::Color col, State state)
+    Particle(double x, double y, double size, sf::Color col, State state,
+             AgentTypes t)
         : Agent(x, y, size, col, state) {
         layer = 1;
         state = Healthy;
         shape = sf::CircleShape(size * SCALE);
+        this->t = t;
     }
 
     void update() {
         if (state != Healthy) {
             std::cout << "Invalid virus state " << state << std::endl;
         }
-        col = sf::Color(255, 0, 0);
-        shape.setFillColor(col);
+        switch (t) {
+            case VirusType:
+                col = sf::Color(255, 0, 0);
+                shape.setFillColor(col);
+                break;
+            case InterferonType:
+                col = sf::Color(0, 0, 200);
+                shape.setFillColor(col);
+                break;
+            default:
+                std::cout << "Invalid Particle type" << std::endl;
+                break;
+        }
     }
 
     void draw(sf::RenderTexture *img) {
@@ -122,6 +136,9 @@ class Cell : public Agent {
                 break;
             case Empty:
                 col = sf::Color(64, 64, 64);
+                break;
+            case Bystander:
+                col = sf::Color(230, 200, 25);
                 break;
             default:
                 std::cout << "Invalid Cell state" << std::endl;
@@ -171,7 +188,7 @@ void splitString(std::string s, char delim, std::vector<std::string> &out) {
         // Next one
         pos = barPos + 1;
         barPos = std::min(s.find(delim, pos), s.size());
-        if (pos > s.size()) {
+        if ((unsigned long int)pos > s.size()) {
             return;
         }
     }
@@ -202,8 +219,14 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                 std::cout << "Cannot add base agent as its a template class"
                           << std::endl;
                 return;
+            case InterferonType:
+                agent = new Particle(0, 0, 0.5, sf::Color(), Healthy,
+                                     (AgentTypes)type);
+                agent->update();
+                break;
             case VirusType:
-                agent = new Particle(0, 0, 2, sf::Color(), Healthy);
+                agent = new Particle(0, 0, 1, sf::Color(), Healthy,
+                                     (AgentTypes)type);
                 agent->update();
                 break;
             case CellType:
@@ -211,6 +234,7 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                 agent->update();
                 break;
             default:
+                agent = (Agent *)0;
                 break;
         }
         agents[id] = agent;
@@ -313,7 +337,7 @@ void mainLoop() {
         int colPos = line.find(':');
         std::string command = line.substr(0, colPos);
         std::string payload = "";
-        if (colPos != line.size() - 1) {
+        if ((unsigned long int)colPos != line.size() - 1) {
             payload = line.substr(colPos + 1, line.size());
         }
 

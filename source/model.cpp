@@ -126,8 +126,7 @@ void Model::init() {
             for (int y = 0; y < extentY; y++) {
                 repast::Point<int> pos =
                     repast::Point<int>(originX + x, originY + y);
-                repast::AgentId id(x + y * extentX, rank,
-                                   agentTypeToInt(CellType));
+                repast::AgentId id(x + y * extentX, rank, (int)(CellType));
                 Cell* agent = new Cell(id, Healthy);
 
                 contexts.cell->addAgent(agent);
@@ -356,7 +355,7 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
     int rank = repast::RepastProcess::instance()->rank();
     repast::Random* randNum = repast::Random::instance();
     repast::Point<int> locDisc((int)loc[0], (int)loc[1]);
-    repast::AgentId id(particleIdCount, rank, agentTypeToInt(t));
+    repast::AgentId id(particleIdCount, rank, (int)t);
     id.currentRank(rank);
 
     Vector vel;
@@ -371,7 +370,14 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
                               repast::RepastProcess::instance()
                                   ->getScheduleRunner()
                                   .currentTick());
-                                   agent->addAttatchFactor(REC_CELL);
+            agent->addAttatchFactor(REC_CELL);
+            break;
+        case InterferonType:
+            agent = new Interferon(id, vel,
+                              repast::RepastProcess::instance()
+                                  ->getScheduleRunner()
+                                  .currentTick());
+            agent->addAttatchFactor(REC_CELL);
             break;
         default:
             std::cout << "Invalid particle type" << std::endl;

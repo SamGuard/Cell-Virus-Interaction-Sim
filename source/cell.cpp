@@ -8,38 +8,31 @@ void Cell::interact(
                                 repast::SimpleAdder<Cell>>* cellSpace,
     repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
                                 repast::SimpleAdder<Particle>>* partDiscSpace,
-    std::vector<std::tuple<repast::Point<double>, AgentType>>* add, std::set<Particle*>* remove) {
+    std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+    std::set<Particle*>* remove) {
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
     double currentTick =
         repast::RepastProcess::instance()->getScheduleRunner().currentTick() /
         tickCycleLen;
 
-    if (getState() == Dead) {
-        if (getDeathTick() + 200 < currentTick) {
-            setNextState(Empty);
-        }
-        return;
-    }
-
     std::vector<int> loc;
     cellSpace->getLocation(id, loc);
-
-    if (getState() == Empty || getState() == Healthy) {
-        repast::VN2DGridQuery<Cell> gridQ(cellSpace);
-
-        repast::Point<int> queryCent(loc);
-
-        std::vector<Cell*> agents;
-        gridQ.query(queryCent, 1, false, agents);
-
-        if (getState() == Healthy &&
-            rand->nextDouble() < cellDeathChanceOvercrowding) {
-            setNextState(Dead);
-            return;
+    switch (getState()) {
+        case Dead: {
+            if (getDeathTick() + 200 < currentTick) {
+                setNextState(Empty);
+            }
+            break;
         }
+        case Empty: {
+            repast::VN2DGridQuery<Cell> gridQ(cellSpace);
 
-        if (getState() == Empty) {
+            repast::Point<int> queryCent(loc);
+
+            std::vector<Cell*> agents;
+            gridQ.query(queryCent, 1, false, agents);
+
             std::vector<Cell*>::iterator it = agents.begin();
             Cell* c;
             int healthyC = 0;
@@ -54,57 +47,114 @@ void Cell::interact(
             if (rand->nextDouble() < (double)healthyC * 0.125) {
                 setNextState(Healthy);
             }
-        }
-    }
-
-    if (getState() == Healthy) {
-        std::vector<int> vLoc;  // location in the viruses coordinate system
-        {
-            repast::Point<int> p(loc[0], loc[1]);
-            vLoc = spaceTrans.cellToPartDisc(p).coords();
+            break;
         }
 
-        repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
+        // Falls through to healthy, has a chance of dying but reduces chance of
+        // being infected
+        case Bystander: {
+            if (rand->nextDouble() < 0.001) {
+                setNextState(Dead);
+                return;
+            }
+            // Set back to healthy
+            if(rand->nextDouble() < 0.0001){
+                setNextState(Healthy);
+                return;
+            }
+            if (rand->nextDouble() > 0.9) {
+                return;
+            }
+        }
+        // The cell will look at nearby viruses and have a chance of becoming
+        // infected
+        case Healthy: {
+            std::vector<int> pLoc;  // location in the viruses coordinate system
+            {
+                repast::Point<int> p(loc[0], loc[1]);
+                pLoc = spaceTrans.cellToPartDisc(p).coords();
+            }
 
-        std::vector<Particle*> agents;
-        gridQ.query(vLoc, spaceTrans.cellSize() / 2.01, true, agents);
+            repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
 
-        if (rand->nextDouble() < 1.0 - pow(0.80, agents.size())) {
-            // A virus cannot infect two cells at once so if the chosen virus is
-            // already in the set then try find another
-            // As well as checking if the receptors/attatchment factors match
-            bool canFindVirus = false;
-            std::vector<Particle*>::iterator it = agents.begin();
+            std::vector<Particle*> agents;
+            gridQ.query(pLoc, spaceTrans.cellSize() / 2.01, true, agents);
 
-            while (it != agents.end()) {
-                // Check the particle returned is a virus
-                Particle* p = *it;
-                if (p->getAgentType() == VirusType &&
-                    p->canAttach(receptorType) &&
-                    p->getId().currentRank() ==
-                        repast::RepastProcess::instance()->rank() &&
-                    remove->find(p) == remove->end()) {
-                    canFindVirus = true;
-                    remove->insert(p);
-                    break;
+            int virusCount = 0;
+            int ifnCount = 0;
+
+            for (std::vector<Particle*>::iterator it = agents.begin();
+                 it != agents.end(); it++) {
+                switch ((*it)->getAgentType()) {
+                    case VirusType:
+                        virusCount++;
+                        break;
+                    case InterferonType:
+                        ifnCount++ ;
+                        break;
+                    default:
+                        std::cout << "Invalid agent type in cell.cpp" << std::endl;
                 }
-                it++;
             }
 
-            if (canFindVirus) {
-                setNextState(Infected);
+            if (rand->nextDouble() < 1.0 - pow(0.80, virusCount)) {
+                // A virus cannot infect two cells at once so if the chosen
+                // virus is already in the set then try find another As well
+                // as checking if the receptors/attatchment factors match
+                bool canFind = false;
+
+                for (std::vector<Particle*>::iterator it = agents.begin();
+                     it != agents.end(); it++) {
+                    // Check the particle returned is a virus
+                    Particle* p = *it;
+                    if (p->getAgentType() == VirusType &&
+                        p->canAttach(receptorType) && isLocal(p->getId()) &&
+                        remove->find(p) == remove->end()) {
+                        canFind = true;
+                        remove->insert(p);
+                        break;
+                    }
+                }
+                if (canFind) {
+                    setNextState(Infected);
+                }
             }
+            if (rand->nextDouble() < 1.0 - pow(0.50, ifnCount)) {
+                bool canFind = false;
+
+                for (std::vector<Particle*>::iterator it = agents.begin();
+                     it != agents.end(); it++) {
+                    // Check the particle returned is a virus
+                    Particle* p = *it;
+                    if (p->getAgentType() == InterferonType &&
+                        isLocal(p->getId()) &&
+                        remove->find(p) == remove->end()) {
+                        canFind = true;
+                        remove->insert(p);
+                        break;
+                    }
+                }
+                if (canFind) {
+                    setNextState(Bystander);
+                }
+            }
+            break;
         }
-    }
 
-    if (getState() == Infected) {
-        if (rand->nextDouble() < 0.1) {
+        case Infected: {
+            if (rand->nextDouble() < 0.1) {
+                for (int i = 0; i < 2; i++) {
+                    add->push_back(std::tuple<repast::Point<double>, AgentType>(
+                        spaceTrans.cellToPart(loc), VirusType));
+                }
+                setNextState(Dead);
+                return;
+            }
             for (int i = 0; i < 2; i++) {
                 add->push_back(std::tuple<repast::Point<double>, AgentType>(
-                    spaceTrans.cellToPart(loc), VirusType));
+                    spaceTrans.cellToPart(loc), InterferonType));
             }
-            setNextState(Dead);
-            return;
+            break;
         }
     }
 }

@@ -6,7 +6,7 @@
 #include "repast_hpc/VN2DGridQuery.h"
 #include "particle.hpp"
 
-enum CellState { Dead, Healthy, Infected, Empty };
+enum CellState { Dead, Healthy, Infected, Empty, Bystander };
 
 class Particle;
 

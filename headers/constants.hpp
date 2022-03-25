@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/Properties.h"
+#include "repast_hpc/RepastProcess.h"
 
 enum AgentType { BaseAgentType, VirusType, CellType, InterferonType };
 
@@ -22,19 +24,8 @@ struct Vector {
     Vector() : x(0), y(0) {}
 };
 
-// Convert to an int for data logging
-inline int agentTypeToInt(AgentType t) {
-    switch (t) {
-        default:
-            printf("ERROR: BAD AGENT TYPE\n");
-            return -1;
-        case BaseAgentType:
-            return 0;
-        case VirusType:
-            return 1;
-        case CellType:
-            return 2;
-    }
+inline bool isLocal(repast::AgentId id) {
+    return id.currentRank() == repast::RepastProcess::instance()->rank();
 }
 
 class SpaceTranslator {
