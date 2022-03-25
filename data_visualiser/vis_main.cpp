@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-const int NUM_PROCS = 4;
-const int NUM_CELLS = 32;
+const int NUM_PROCS = 32;
+const int NUM_CELLS = 1024;
 const int WIDTH = 600;
 const int HEIGHT = 600;
 const double CELL_SIZE = WIDTH / NUM_CELLS;
@@ -35,7 +35,7 @@ class Agent {
 
     Agent() {
         x = y = 0;
-        size = 15;
+        size = 2;
         layer = 0;
         col = sf::Color(255, 255, 255);
         state = Healthy;
