@@ -9,8 +9,8 @@
 
 const int NUM_PROCS = 32;
 const int NUM_CELLS = 1024;
-const int WIDTH = 600;
-const int HEIGHT = 600;
+const int WIDTH = 1024;
+const int HEIGHT = 1024;
 const double CELL_SIZE = WIDTH / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
