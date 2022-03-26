@@ -13,8 +13,7 @@ void Cell::interact(
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
     double currentTick =
-        repast::RepastProcess::instance()->getScheduleRunner().currentTick() /
-        tickCycleLen;
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
     std::vector<int> loc;
     cellSpace->getLocation(id, loc);
@@ -53,12 +52,11 @@ void Cell::interact(
         // Falls through to healthy, has a chance of dying but reduces chance of
         // being infected
         case Bystander: {
-            if (rand->nextDouble() < 0.001) {
+            double r = rand->nextDouble();
+            if (r < 0.001) {
                 setNextState(Dead);
                 return;
-            }
-            // Set back to healthy
-            if(rand->nextDouble() < 0.0001){
+            }else if (r < 0.001 + 0.01) {
                 setNextState(Healthy);
                 return;
             }
@@ -90,10 +88,13 @@ void Cell::interact(
                         virusCount++;
                         break;
                     case InterferonType:
-                        ifnCount++ ;
+                        ifnCount++;
+                        break;
+                    case InnateImmuneType:
                         break;
                     default:
-                        std::cout << "Invalid agent type in cell.cpp" << std::endl;
+                        std::cout << "Invalid agent type in cell.cpp"
+                                  << std::endl;
                 }
             }
 

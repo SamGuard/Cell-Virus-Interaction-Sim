@@ -65,14 +65,19 @@ class Model {
     std::stringstream simData;
     std::ofstream simDataFile;
 
-    // ------------------------------------------------
+    repast::SVDataSet* agentTotalData;
 
+    // ------------------------------------------------
+    void initDataLogging();
     void init();
     void initSchedule(repast::ScheduleRunner& runner);
     void balanceAgents();
 
     void addParticle(repast::Point<double> loc, AgentType t);
-    void removeParticle(Particle* v);
+    void addParticles(
+        std::vector<std::tuple<repast::Point<double>, AgentType>>& p);
+    void removeParticle(Particle* p);
+    void removeParticles(std::set<Particle*>& p);
 
     void move();
     void interact();

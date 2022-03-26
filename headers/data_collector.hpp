@@ -4,7 +4,11 @@
 #include <iostream>
 #include <sstream>
 
+#include "constants.hpp"
+#include "cell.hpp"
 #include "repast_hpc/AgentId.h"
+#include "repast_hpc/SVDataSet.h"
+#include "repast_hpc/TDataSource.h"
 
 /* Data Collection */
 class DataCollector {
@@ -22,44 +26,62 @@ class DataCollector {
         this->file = file;
     }
 
-    void newAgent(repast::AgentId id) {
-        *data << "create:" << id.id() << "|" << id.startingRank() << "|"
-              << id.agentType() << std::endl;
-    }
-
-    void killAgent(repast::AgentId id){
-        *data << "kill:" << id.id() << "|" << id.startingRank() << "|"
-              << id.agentType() << std::endl;
-    }
-
+    void newAgent(repast::AgentId id);
+    void killAgent(repast::AgentId id);
     void setPos(repast::AgentId id, std::vector<double> pos,
-                bool printInstruction) {
-        if (printInstruction) {
-            *data << "setpos:";
-        }
-        *data << id.id() << "|" << id.startingRank() << "|" << id.agentType()
-              << "|" << pos[0] << "|" << pos[1];
-
-        if (printInstruction) {
-            *data << std::endl;
-        } else {
-            *data << ",";
-        }
-    }
-
-    void setState(repast::AgentId id, int state, bool printInstruction) {
-        if (printInstruction) {
-            *data << "setstate:";
-        }
-        *data << id.id() << "|" << id.startingRank() << "|" << id.agentType()
-              << "|" << state;
-
-        if (printInstruction) {
-            *data << std::endl;
-        } else {
-            *data << ",";
-        }
-    }
-
+                bool printInstruction);
+    void setState(repast::AgentId id, int state, bool printInstruction);
     void writeData() { (*file) << data->rdbuf(); }
+};
+
+template <class T>
+class AgentTotals : public repast::TDataSource<int> {
+   private:
+    AgentType type;
+    repast::SharedContext<T> *cont;
+
+   public:
+    AgentTotals(repast::SharedContext<T> *cont, AgentType type) {
+        this->cont = cont;
+        this->type = type;
+    }
+
+    int getData() {
+        int count = 0;
+        for (typename repast::SharedContext<T>::const_local_iterator it =
+                 cont->localBegin();
+             it != cont->localEnd(); it++) {
+            if ((*it)->getAgentType() == type) {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+
+template<>
+class AgentTotals<Cell> : public repast::TDataSource<int> {
+   private:
+    AgentType type;
+    repast::SharedContext<Cell> *cont;
+    CellState stateFilter;
+
+   public:
+    AgentTotals(repast::SharedContext<Cell> *cont, AgentType type, CellState state) {
+        this->cont = cont;
+        this->type = type;
+        this->stateFilter = state;
+    }
+
+    int getData() {
+        int count = 0;
+        for (repast::SharedContext<Cell>::const_local_iterator it =
+                 cont->localBegin();
+             it != cont->localEnd(); it++) {
+            if ((*it)->getAgentType() == type && (*it)->getState() == stateFilter) {
+                count++;
+            }
+        }
+        return count;
+    }
 };

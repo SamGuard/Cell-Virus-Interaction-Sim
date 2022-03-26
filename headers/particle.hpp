@@ -7,6 +7,7 @@
 #include "cell.hpp"
 #include "constants.hpp"
 #include "repast_hpc/AgentId.h"
+#include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"
@@ -32,14 +33,16 @@ class Particle : public AgentBase {
     inline double getBirthTick() { return birthTick; }
 
     // This is where interactions that change the state of agents take place
-    void interact(repast::SharedContext<Particle>* context,
-                  repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
-                                              repast::SimpleAdder<Particle>>*
-                      partDiscreteSpace,
-                  repast::SharedContinuousSpace<Particle, repast::StrictBorders,
-                                                repast::SimpleAdder<Particle>>*
-                      partContinSpace,
-                  bool& isAlive);
+    void interact(
+        repast::SharedContext<Particle>* context,
+        repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                    repast::SimpleAdder<Particle>>*
+            partDiscreteSpace,
+        repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                      repast::SimpleAdder<Particle>>*
+            partContinSpace,
+        std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+        std::set<Particle*>* remove);
     // Moves the agent
     void move(repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
                                           repast::SimpleAdder<Particle>>*
@@ -48,7 +51,6 @@ class Particle : public AgentBase {
                                             repast::SimpleAdder<Particle>>*
                   partContinSpace);
 };
-
 
 class Virus : public Particle {
    public:
@@ -60,6 +62,25 @@ class Interferon : public Particle {
    public:
     Interferon(repast::AgentId id, Vector vel, double birthTick)
         : Particle(id, InterferonType, vel, birthTick) {}
+};
+
+class InnateImmune : public Particle {
+   public:
+    InnateImmune(repast::AgentId id, Vector vel, double birthTick)
+        : Particle(id, InnateImmuneType, vel, birthTick) {}
+    InnateImmune(Particle p)
+        : Particle(p.getId(), InnateImmuneType, p.getVel(), p.getBirthTick()) {}
+
+    void interact(
+        repast::SharedContext<Particle>* context,
+        repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                    repast::SimpleAdder<Particle>>*
+            partDiscreteSpace,
+        repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                      repast::SimpleAdder<Particle>>*
+            partContinSpace,
+        std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+        std::set<Particle*>* remove);
 };
 
 /* Serializable Agent Package */

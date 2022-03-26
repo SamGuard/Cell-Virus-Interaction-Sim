@@ -2,9 +2,9 @@
 #define CELL
 
 #include "agentbase.hpp"
+#include "particle.hpp"
 #include "repast_hpc/Schedule.h"
 #include "repast_hpc/VN2DGridQuery.h"
-#include "particle.hpp"
 
 enum CellState { Dead, Healthy, Infected, Empty, Bystander };
 
@@ -40,7 +40,8 @@ class Cell : public AgentBase {
     }
 
     void set(repast::AgentId id, CellState state, CellState nextState,
-             bool hasStateChanged, double deathTick, int receptorType, std::vector<int> attFactors){
+             bool hasStateChanged, double deathTick, int receptorType,
+             std::vector<int> attFactors) {
         AgentBase::set(id, CellType, Vector(), 0, receptorType, attFactors);
         this->state = state;
         this->nextState = nextState;
@@ -49,15 +50,13 @@ class Cell : public AgentBase {
 
     CellState getState() { return state; }
     CellState getNextState() { return state; }
-    
 
     void setState(CellState state) { this->state = this->nextState = state; }
     void setNextState(CellState state) {
         if (state == Dead) {
             setDeathTick(repast::RepastProcess::instance()
                              ->getScheduleRunner()
-                             .currentTick() /
-                         tickCycleLen);
+                             .currentTick());
         } else if (state == Empty) {
             setDeathTick(-1);
         }
@@ -75,8 +74,10 @@ class Cell : public AgentBase {
         repast::SharedDiscreteSpace<Cell, repast::StrictBorders,
                                     repast::SimpleAdder<Cell>>* cellSpace,
         repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
-                                    repast::SimpleAdder<Particle>>* partDiscSpace,
-        std::vector<std::tuple<repast::Point<double>, AgentType>>* add, std::set<Particle*>* remove);
+                                    repast::SimpleAdder<Particle>>*
+            partDiscSpace,
+        std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+        std::set<Particle*>* remove);
 };
 
 /* Serializable Agent Package */
@@ -92,7 +93,8 @@ struct CellPackage {
     CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
                 int _receptorType, CellState _state, CellState nextState,
-                bool _hasStateChanged, double _deathTick, std::vector<int> _attFactors);
+                bool _hasStateChanged, double _deathTick,
+                std::vector<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>

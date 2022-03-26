@@ -43,6 +43,9 @@ Particle* ParticlePackageReceiver::createAgent(ParticlePackage package) {
         case InterferonType:
             agent = new Interferon(id, v, package.birthTick);
             break;
+        case InnateImmuneType:
+            agent = new InnateImmune(id, v, package.birthTick);
+            break;
         default:
             std::cout
                 << "Invalid agent type in ParticlePacakgeReceiver::createAgent"

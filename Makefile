@@ -1,10 +1,13 @@
 include ./env
 
-build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o
+build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS)
 
-build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o
+build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
+
+./objects/data_collector.o: ./headers/constants.hpp ./source/data_collector.cpp
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/data_collector.cpp -o ./objects/data_collector.o $(COMP_FLAGS)
 
 ./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./headers/cell.hpp ./source/cell.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o $(COMP_FLAGS)

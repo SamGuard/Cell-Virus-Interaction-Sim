@@ -9,12 +9,16 @@
 #include "repast_hpc/Properties.h"
 #include "repast_hpc/RepastProcess.h"
 
-enum AgentType { BaseAgentType, VirusType, CellType, InterferonType };
+enum AgentType {
+    BaseAgentType,
+    VirusType,
+    CellType,
+    InterferonType,
+    InnateImmuneType
+};
 
 extern double cellDeathChanceOvercrowding;
 extern unsigned long int particleIdCount;
-extern double tickCycleLen;  // The amount of ticks for one full cycle of every
-                             // action ( this is to give order to action)
 // Receptor/Attatchment Types
 #define REC_VIRUS 1
 #define REC_CELL 2

@@ -9,15 +9,15 @@
 
 const int NUM_PROCS = 4;
 const int NUM_CELLS = 32;
-const int WIDTH = 600;
-const int HEIGHT = 600;
+const int WIDTH = 640;
+const int HEIGHT = 640;
 const double CELL_SIZE = WIDTH / NUM_CELLS;
 const double SIM_EXTENT = 200;
 const double SCALE = WIDTH / SIM_EXTENT;
 const int MAX_LAYERS = 2;
 
 enum State { Dead, Healthy, Infected, Empty, Bystander };
-enum AgentTypes { BaseAgentType, VirusType, CellType, InterferonType };
+enum AgentTypes { BaseAgentType, VirusType, CellType, InterferonType, InnateImmuneType };
 
 void transformPoints(double &x, double &y) {
     x *= SCALE;
@@ -91,6 +91,10 @@ class Particle : public Agent {
                 break;
             case InterferonType:
                 col = sf::Color(0, 0, 200);
+                shape.setFillColor(col);
+                break;
+            case InnateImmuneType:
+                col = sf::Color(200, 200, 100);
                 shape.setFillColor(col);
                 break;
             default:
@@ -220,12 +224,17 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                           << std::endl;
                 return;
             case InterferonType:
-                agent = new Particle(0, 0, 0.5, sf::Color(), Healthy,
+                agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
+                                     (AgentTypes)type);
+                agent->update();
+                break;
+            case InnateImmuneType:
+                agent = new Particle(0, 0, 1.0, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;
             case VirusType:
-                agent = new Particle(0, 0, 1, sf::Color(), Healthy,
+                agent = new Particle(0, 0, 0.5, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;

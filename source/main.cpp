@@ -16,6 +16,7 @@ int main(int argc, char** argv){
 	Model model = Model(propsFile, argc, argv, &world);
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 
+	model.initDataLogging();
 	model.init();
 	model.initSchedule(runner);
 
