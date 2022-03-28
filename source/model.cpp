@@ -45,6 +45,8 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     spaceTrans = SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
 
+    human = HumanResponse();
+
     // Virus spaces
     {
         repast::GridDimensions gd(pOrigin, pExtent);
@@ -98,14 +100,15 @@ void Model::initDataLogging() {
         "./output/agent_total_data.csv", ",",
         repast::RepastProcess::instance()->getScheduleRunner().schedule());
 
-    AgentTotals<Particle>* virus;
+    AgentTotals<Particle>*virus, *ifn, *innate;
     AgentTotals<Cell>*cellHealthy, *cellInfected, *cellDead;
-    AgentTotals<Particle>* ifn;
     virus = new AgentTotals<Particle>(contexts.part, VirusType);
+    ifn = new AgentTotals<Particle>(contexts.part, InterferonType);
+    innate = new AgentTotals<Particle>(contexts.part, InnateImmuneType);
+
     cellHealthy = new AgentTotals<Cell>(contexts.cell, CellType, Healthy);
     cellInfected = new AgentTotals<Cell>(contexts.cell, CellType, Infected);
     cellDead = new AgentTotals<Cell>(contexts.cell, CellType, Dead);
-    ifn = new AgentTotals<Particle>(contexts.part, InterferonType);
 
     builder.addDataSource(
         createSVDataSource("Total_Viruses", virus, std::plus<int>()));
@@ -117,6 +120,8 @@ void Model::initDataLogging() {
         createSVDataSource("Total_Cells_Dead", cellDead, std::plus<int>()));
     builder.addDataSource(
         createSVDataSource("Total_IFNs", ifn, std::plus<int>()));
+    builder.addDataSource(createSVDataSource("Total_Innate_Immune_Cell", innate,
+                                             std::plus<int>()));
 
     // Use the builder to create the data set
     agentTotalData = builder.createDataSet();
@@ -133,7 +138,7 @@ void Model::init() {
            spawnOriginY = spaces.partCont->dimensions().origin().getY();
 
     double spawnSizeX = spaces.partCont->dimensions().extents().getX(),
-           spawnSizeY = spaces.partCont->dimensions().extents().getX();
+           spawnSizeY = spaces.partCont->dimensions().extents().getY();
     if (repast::RepastProcess::instance()->rank() == 0) {
         particleIdCount = 0;
         for (int i = 0; i < virusCount; i++) {
@@ -143,7 +148,7 @@ void Model::init() {
         }
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 1; i++) {
         double offsetX = spawnOriginX + randNum->nextDouble() * spawnSizeX,
                offsetY = spawnOriginY + randNum->nextDouble() * spawnSizeY;
         addParticle(repast::Point<double>(offsetX, offsetY), InnateImmuneType);
@@ -295,31 +300,32 @@ void Model::move() {
 }
 
 void Model::interact() {
-
     std::vector<std::tuple<repast::Point<double>, AgentType>> partToAdd;
     std::set<Particle*> partToRemove;
+    int innateCount = 0;
     // Particle
     if (contexts.part->size() > 0) {
         {
             std::vector<Particle*> agents;
-            contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL, agents);
-            for (std::vector<Particle*>::iterator it =
-                     agents.begin();
+            contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
+                                        agents);
+            for (std::vector<Particle*>::iterator it = agents.begin();
                  it != agents.end(); it++) {
-                     Particle *p = *it;
-                     if(p->getAgentType() == InnateImmuneType){
-                         InnateImmune newP(*p);
-                         newP.interact(contexts.part, spaces.partDisc, spaces.partCont,
+                Particle* p = *it;
+                if (p->getAgentType() == InnateImmuneType) {
+                    InnateImmune newP(*p);
+                    newP.interact(contexts.part, spaces.partDisc,
+                                  spaces.partCont, &partToAdd, &partToRemove);
+                    innateCount++;
+                } else {
+                    p->interact(contexts.part, spaces.partDisc, spaces.partCont,
                                 &partToAdd, &partToRemove);
-                     } else {
-                         p->interact(contexts.part, spaces.partDisc, spaces.partCont,
-                                &partToAdd, &partToRemove);
-                     }
-                
+                }
             }
         }
     }
 
+    // Remove particles that have died of old age
     removeParticles(partToRemove);
 
     // Cell
@@ -328,6 +334,17 @@ void Model::interact() {
          it != contexts.cell->localEnd(); it++) {
         (*it)->interact(contexts.cell, spaces.cellDisc, spaces.partDisc,
                         &partToAdd, &partToRemove);
+    }
+
+    {
+        int removeVirusCount = 0;
+        for (std::set<Particle*>::iterator it = partToRemove.begin();
+             it != partToRemove.end(); it++) {
+            if ((*it)->getAgentType() == VirusType) {
+                removeVirusCount++;
+            }
+        }
+        human.response(innateCount, removeVirusCount, &partToAdd);
     }
 
     removeParticles(partToRemove);
@@ -348,7 +365,24 @@ void Model::interact() {
     balanceAgents();
 }
 
+void Model::addParticle(AgentType t) {
+    double spawnOriginX = spaces.partCont->dimensions().origin().getX(),
+           spawnOriginY = spaces.partCont->dimensions().origin().getY();
+
+    double spawnSizeX = spaces.partCont->dimensions().extents().getX(),
+           spawnSizeY = spaces.partCont->dimensions().extents().getY();
+    double offsetX = spawnOriginX +
+                     repast::Random::instance()->nextDouble() * spawnSizeX,
+           offsetY = spawnOriginY +
+                     repast::Random::instance()->nextDouble() * spawnSizeY;
+    addParticle(repast::Point<double>(offsetX, offsetY), t);
+}
+
 void Model::addParticle(repast::Point<double> loc, AgentType t) {
+    if ((int)loc.getX() == -1 && (int)loc.getY() == -1) {
+        addParticle(t);
+        return;
+    }
     int rank = repast::RepastProcess::instance()->rank();
     int tick =
         repast::RepastProcess::instance()->getScheduleRunner().currentTick();
@@ -366,14 +400,18 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
     switch (t) {
         case VirusType:
             agent = new Virus(id, vel, tick);
-            agent->addAttatchFactor(REC_CELL);
+            agent->addAttachFactor(REC_CELL);
             break;
         case InterferonType:
             agent = new Interferon(id, vel, tick);
-            agent->addAttatchFactor(REC_CELL);
+            agent->addAttachFactor(REC_CELL);
             break;
         case InnateImmuneType:
             agent = new InnateImmune(id, vel, tick);
+            break;
+        case AntigenType:
+            agent = new Antigen(id, vel, tick);
+            agent->addAttachFactor(REC_CELL);
             break;
         default:
             std::cout << "Invalid particle type" << std::endl;
@@ -387,15 +425,6 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
     dataCol.newAgent(id);
     dataCol.setPos(id, loc.coords(), true);
     particleIdCount++;
-
-    /* For debugging
-    cout << "ADDING " << agent->getId() << " ON TICK "
-         << repast::RepastProcess::instance()
-                    ->getScheduleRunner()
-                    .currentTick() /
-             1
-         << " POS: " << loc[0] << " " << loc[1] << std::endl;
-    */
 }
 
 void Model::addParticles(

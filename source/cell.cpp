@@ -90,11 +90,8 @@ void Cell::interact(
                     case InterferonType:
                         ifnCount++;
                         break;
-                    case InnateImmuneType:
-                        break;
                     default:
-                        std::cout << "Invalid agent type in cell.cpp"
-                                  << std::endl;
+                        break;
                 }
             }
 
@@ -163,7 +160,7 @@ void Cell::interact(
 CellPackage::CellPackage(int _id, int _rank, int _type, int _currentRank,
                          int _receptorType, CellState _state,
                          CellState _nextState, bool _hasStateChanged,
-                         double _deathTick, std::vector<int> _attFactors)
+                         double _deathTick, std::set<int> _attFactors)
     : id(_id),
       rank(_rank),
       type(_type),

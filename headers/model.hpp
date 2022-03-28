@@ -10,6 +10,7 @@
 
 #include "communicators.hpp"
 #include "data_collector.hpp"
+#include "human_response.hpp"
 #include "particle.hpp"
 #include "repast_hpc/AgentRequest.h"
 #include "repast_hpc/GridComponents.h"
@@ -61,6 +62,8 @@ class Model {
     AgentSpaces spaces;
     AgentComm comms;
 
+    HumanResponse human;
+
     DataCollector dataCol;
     std::stringstream simData;
     std::ofstream simDataFile;
@@ -74,6 +77,7 @@ class Model {
     void balanceAgents();
 
     void addParticle(repast::Point<double> loc, AgentType t);
+    void addParticle(AgentType t);
     void addParticles(
         std::vector<std::tuple<repast::Point<double>, AgentType>>& p);
     void removeParticle(Particle* p);

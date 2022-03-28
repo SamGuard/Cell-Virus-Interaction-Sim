@@ -17,7 +17,14 @@ const double SCALE = WIDTH / SIM_EXTENT;
 const int MAX_LAYERS = 2;
 
 enum State { Dead, Healthy, Infected, Empty, Bystander };
-enum AgentTypes { BaseAgentType, VirusType, CellType, InterferonType, InnateImmuneType };
+enum AgentTypes {
+    BaseAgentType,
+    VirusType,
+    CellType,
+    InterferonType,
+    InnateImmuneType,
+    AntigenType
+};
 
 void transformPoints(double &x, double &y) {
     x *= SCALE;
@@ -95,6 +102,10 @@ class Particle : public Agent {
                 break;
             case InnateImmuneType:
                 col = sf::Color(200, 200, 100);
+                shape.setFillColor(col);
+                break;
+            case AntigenType:
+                col = sf::Color(50, 200, 50);
                 shape.setFillColor(col);
                 break;
             default:
@@ -238,12 +249,17 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                                      (AgentTypes)type);
                 agent->update();
                 break;
+            case AntigenType:
+                agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
+                                     (AgentTypes)type);
+                agent->update();
+                break;
             case CellType:
                 agent = new Cell(0, 0, CELL_SIZE, sf::Color(), Healthy);
                 agent->update();
                 break;
             default:
-                agent = (Agent *)0;
+                std::cout << "Agent type not recognised" << std::endl;
                 break;
         }
         agents[id] = agent;

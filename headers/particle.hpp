@@ -83,18 +83,35 @@ class InnateImmune : public Particle {
         std::set<Particle*>* remove);
 };
 
+class Antigen : public Particle {
+   public:
+    Antigen(repast::AgentId id, Vector vel, double birthTick)
+        : Particle(id, AntigenType, vel, birthTick) {}
+    
+    void interact(
+        repast::SharedContext<Particle>* context,
+        repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                    repast::SimpleAdder<Particle>>*
+            partDiscreteSpace,
+        repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                      repast::SimpleAdder<Particle>>*
+            partContinSpace,
+        std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+        std::set<Particle*>* remove);
+};
+
 /* Serializable Agent Package */
 struct ParticlePackage {
    public:
     int id, rank, type, currentRank, receptorType;
     double velx, vely, birthTick;
-    std::vector<int> attFactors;
+    std::set<int> attFactors;
 
     /* Constructors */
     ParticlePackage();  // For serialization
     ParticlePackage(int _id, int _rank, int _type, int _currentRank,
                     int _receptorType, double _velx, double _vely,
-                    double _birthTick, std::vector<int> _attFactors);
+                    double _birthTick, std::set<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>

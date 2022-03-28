@@ -18,7 +18,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 ./objects/communicators.o: ./headers/constants.hpp ./headers/particle.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o $(COMP_FLAGS)
 
-./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
+./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/human_response.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/model.cpp -o ./objects/model.o $(COMP_FLAGS)
 
 ./objects/main.o: ./headers/constants.hpp ./headers/model.hpp ./source/main.cpp 

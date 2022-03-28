@@ -41,7 +41,7 @@ class Cell : public AgentBase {
 
     void set(repast::AgentId id, CellState state, CellState nextState,
              bool hasStateChanged, double deathTick, int receptorType,
-             std::vector<int> attFactors) {
+             std::set<int> attFactors) {
         AgentBase::set(id, CellType, Vector(), 0, receptorType, attFactors);
         this->state = state;
         this->nextState = nextState;
@@ -87,14 +87,14 @@ struct CellPackage {
     CellState state, nextState;
     bool hasStateChanged;
     double deathTick;
-    std::vector<int> attFactors;
+    std::set<int> attFactors;
 
     /* Constructors */
     CellPackage(){};  // For serialization
     CellPackage(int _id, int _rank, int _type, int _currentRank,
                 int _receptorType, CellState _state, CellState nextState,
                 bool _hasStateChanged, double _deathTick,
-                std::vector<int> _attFactors);
+                std::set<int> _attFactors);
 
     /* For archive packaging */
     template <class Archive>

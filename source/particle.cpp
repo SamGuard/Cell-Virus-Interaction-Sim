@@ -75,6 +75,14 @@ void InnateImmune::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
+    if (birthTick + 100 < repast::RepastProcess::instance()
+                              ->getScheduleRunner()
+                              .currentTick() &&
+        remove->find(this) == remove->end()) {
+        remove->insert(this);
+        return;
+    }
+
     std::vector<double> loc;
     partContinSpace->getLocation(getId(), loc);
 
@@ -87,9 +95,39 @@ void InnateImmune::interact(
          it != agents.end(); it++) {
         Particle* a = *it;
         if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
-            remove->find(a) == remove->end() && repast::Random::instance()->nextDouble() < 0.05) {
+            remove->find(a) == remove->end() &&
+            repast::Random::instance()->nextDouble() < 0.05) {
             remove->insert(a);
             return;
+        }
+    }
+}
+
+void Antigen::interact(
+    repast::SharedContext<Particle>* context,
+    repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
+                                repast::SimpleAdder<Particle>>*
+        partDiscreteSpace,
+    repast::SharedContinuousSpace<Particle, repast::StrictBorders,
+                                  repast::SimpleAdder<Particle>>*
+        partContinSpace,
+    std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
+    std::set<Particle*>* remove) {
+    std::vector<double> loc;
+    partContinSpace->getLocation(getId(), loc);
+
+    std::vector<Particle*> agents;
+    repast::Moore2DGridQuery<Particle> query(partDiscreteSpace);
+    query.query(repast::Point<int>(loc[0], loc[1]), 2, true, agents);
+
+    for (std::vector<Particle*>::iterator it = agents.begin();
+         it != agents.end(); it++) {
+        Particle* a = *it;
+        if (a->getAgentType() == VirusType && isLocal(a->getId())) {
+            a->removeAttachFactor(a->getReceptorType());
+            if (remove->find(this) == remove->end()) {
+                remove->insert(this);
+            }
         }
     }
 }
@@ -101,7 +139,7 @@ ParticlePackage::ParticlePackage() {}
 ParticlePackage::ParticlePackage(int _id, int _rank, int _type,
                                  int _currentRank, int _receptorType,
                                  double _velx, double _vely, double _birthTick,
-                                 std::vector<int> _attFactors)
+                                 std::set<int> _attFactors)
     : id(_id),
       rank(_rank),
       type(_type),
