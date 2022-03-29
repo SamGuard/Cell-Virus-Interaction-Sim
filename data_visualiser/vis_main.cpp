@@ -23,7 +23,7 @@ enum AgentTypes {
     CellType,
     InterferonType,
     InnateImmuneType,
-    AntigenType
+    AntibodyType
 };
 
 void transformPoints(double &x, double &y) {
@@ -104,7 +104,7 @@ class Particle : public Agent {
                 col = sf::Color(200, 200, 100);
                 shape.setFillColor(col);
                 break;
-            case AntigenType:
+            case AntibodyType:
                 col = sf::Color(50, 200, 50);
                 shape.setFillColor(col);
                 break;
@@ -249,7 +249,7 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                                      (AgentTypes)type);
                 agent->update();
                 break;
-            case AntigenType:
+            case AntibodyType:
                 agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();

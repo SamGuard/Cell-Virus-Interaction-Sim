@@ -75,10 +75,11 @@ void InnateImmune::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
-    if (birthTick + 100 < repast::RepastProcess::instance()
+    repast::Random* rand = repast::Random::instance();
+    if (birthTick + 500 < repast::RepastProcess::instance()
                               ->getScheduleRunner()
                               .currentTick() &&
-        remove->find(this) == remove->end()) {
+        remove->find(this) == remove->end() && isLocal(this->getId())) {
         remove->insert(this);
         return;
     }
@@ -89,21 +90,24 @@ void InnateImmune::interact(
     std::vector<Particle*> agents;
 
     repast::Moore2DGridQuery<Particle> query(partDiscreteSpace);
-    query.query(repast::Point<int>((int)loc[0], (int)loc[1]), 10, true, agents);
+    query.query(repast::Point<int>((int)loc[0], (int)loc[1]), 5, true, agents);
 
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;
         if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
-            remove->find(a) == remove->end() &&
-            repast::Random::instance()->nextDouble() < 0.05) {
+            remove->find(a) == remove->end() && rand->nextDouble() < 0.004) {
+            if (rand->nextDouble() < 1.0) {
+                add->push_back(std::tuple<repast::Point<double>, AgentType>(
+                    repast::Point<double>(-1, -1), InnateImmuneType));
+            }
             remove->insert(a);
             return;
         }
     }
 }
 
-void Antigen::interact(
+void Antibody::interact(
     repast::SharedContext<Particle>* context,
     repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
                                 repast::SimpleAdder<Particle>>*
@@ -113,6 +117,14 @@ void Antigen::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
+    if (birthTick + 900 <
+        repast::RepastProcess::instance()->getScheduleRunner().currentTick()) {
+        if (remove->find(this) == remove->end()) {
+            remove->insert(this);
+        }
+        return;
+    }
+
     std::vector<double> loc;
     partContinSpace->getLocation(getId(), loc);
 
@@ -123,11 +135,14 @@ void Antigen::interact(
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;
-        if (a->getAgentType() == VirusType && isLocal(a->getId())) {
-            a->removeAttachFactor(a->getReceptorType());
+        if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
+            repast::Random::instance()->nextDouble() < 0.75 &&
+            remove->find(a) == remove->end()) {
+            remove->insert(a);
             if (remove->find(this) == remove->end()) {
                 remove->insert(this);
             }
+            return;
         }
     }
 }

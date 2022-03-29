@@ -100,11 +100,12 @@ void Model::initDataLogging() {
         "./output/agent_total_data.csv", ",",
         repast::RepastProcess::instance()->getScheduleRunner().schedule());
 
-    AgentTotals<Particle>*virus, *ifn, *innate;
+    AgentTotals<Particle>*virus, *ifn, *innate, *antiB;
     AgentTotals<Cell>*cellHealthy, *cellInfected, *cellDead;
     virus = new AgentTotals<Particle>(contexts.part, VirusType);
     ifn = new AgentTotals<Particle>(contexts.part, InterferonType);
     innate = new AgentTotals<Particle>(contexts.part, InnateImmuneType);
+    antiB = new AgentTotals<Particle>(contexts.part, AntibodyType);
 
     cellHealthy = new AgentTotals<Cell>(contexts.cell, CellType, Healthy);
     cellInfected = new AgentTotals<Cell>(contexts.cell, CellType, Infected);
@@ -122,6 +123,8 @@ void Model::initDataLogging() {
         createSVDataSource("Total_IFNs", ifn, std::plus<int>()));
     builder.addDataSource(createSVDataSource("Total_Innate_Immune_Cell", innate,
                                              std::plus<int>()));
+    builder.addDataSource(
+        createSVDataSource("Total_Antibodies", antiB, std::plus<int>()));
 
     // Use the builder to create the data set
     agentTotalData = builder.createDataSet();
@@ -233,7 +236,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<Model>(this, &Model::collectCellData)));
     runner.scheduleEvent(
-        1.3, 5,
+        1.3, 1,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentTotalData, &repast::DataSet::record)));
     runner.scheduleEvent(
@@ -312,14 +315,26 @@ void Model::interact() {
             for (std::vector<Particle*>::iterator it = agents.begin();
                  it != agents.end(); it++) {
                 Particle* p = *it;
-                if (p->getAgentType() == InnateImmuneType) {
-                    InnateImmune newP(*p);
-                    newP.interact(contexts.part, spaces.partDisc,
-                                  spaces.partCont, &partToAdd, &partToRemove);
-                    innateCount++;
-                } else {
-                    p->interact(contexts.part, spaces.partDisc, spaces.partCont,
-                                &partToAdd, &partToRemove);
+                switch (p->getAgentType()) {
+                    case InnateImmuneType: {
+                        InnateImmune* newP = (InnateImmune*)p;
+                        newP->interact(contexts.part, spaces.partDisc,
+                                       spaces.partCont, &partToAdd,
+                                       &partToRemove);
+                        innateCount++;
+                        break;
+                    }
+                    case AntibodyType: {
+                        Antibody* newP = (Antibody*)p;
+                        newP->interact(contexts.part, spaces.partDisc,
+                                       spaces.partCont, &partToAdd,
+                                       &partToRemove);
+                        break;
+                    }
+                    default:
+                        p->interact(contexts.part, spaces.partDisc,
+                                    spaces.partCont, &partToAdd, &partToRemove);
+                        break;
                 }
             }
         }
@@ -409,8 +424,8 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
         case InnateImmuneType:
             agent = new InnateImmune(id, vel, tick);
             break;
-        case AntigenType:
-            agent = new Antigen(id, vel, tick);
+        case AntibodyType:
+            agent = new Antibody(id, vel, tick);
             agent->addAttachFactor(REC_CELL);
             break;
         default:
@@ -437,17 +452,12 @@ void Model::addParticles(
 }
 
 void Model::removeParticle(Particle* v) {
-    /* For debugging
-    std::vector<double> loc;
-    spaces.virusCont->getLocation(v->getId(), loc);
-    cout << "REMOVING " << v->getId() << " ON TICK "
-         << repast::RepastProcess::instance()
-                    ->getScheduleRunner()
-                    .currentTick() /
-             1
-         << " POS: " << loc[0] << " " << loc[1] << std::endl;
+    // For debugging
+    /*
+    std::cout
+        << "REMOVING " << v->getId() << " ON TICK "
+        << repast::RepastProcess::instance()->getScheduleRunner().currentTick();
     */
-
     repast::AgentId id = v->getId();
 
     dataCol.killAgent(id);

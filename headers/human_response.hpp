@@ -7,37 +7,39 @@
 
 class HumanResponse {
    public:
-   int averageTimeFindingRec = 500;
-   bool cureFound;
-   int area;
+    int averageTimeFindingRec = 700;
+    double threatLevel;
+    double tickToFindCure;
+    bool cureFound;
+    int area;
     HumanResponse() {
         cureFound = false;
         area = repast::RepastProcess::instance()->worldSize();
         area *= area;
+        double r = repast::Random::instance()->nextDouble();
+        tickToFindCure = averageTimeFindingRec + 100.0 * (r * r - 0.5);
+        threatLevel = 0;
     }
 
     void response(
         int innateCellCount, int removeVirusCount,
         std::vector<std::tuple<repast::Point<double>, AgentType>>* partToAdd) {
-        // Have a chance of adding more innate cell
-        // The chance is increased the less innate cells there are and the more
-        // virus cells that have been removed
-        double r = repast::Random::instance()->nextDouble();
-
-        if (r < pow(0.8, innateCellCount / area)) {
+        if (innateCellCount < 1) {
             partToAdd->push_back(std::tuple<repast::Point<double>, AgentType>(
                 repast::Point<double>(-1, -1), InnateImmuneType));
         }
 
-        if(cureFound){
-            for(int i = 0; i < 10; i++){
-                partToAdd->push_back(std::tuple<repast::Point<double>, AgentType>(
-                repast::Point<double>(-1, -1), AntigenType));
-            }
-        } else {
-            double r = repast::Random::instance()->nextDouble();
-            if(r < 1 / ((double) averageTimeFindingRec)){
+        {
+            threatLevel = 1 - 1 / (1 + removeVirusCount);
+            if (repast::RepastProcess::instance()
+                    ->getScheduleRunner()
+                    .currentTick() > tickToFindCure) {
                 cureFound = true;
+                for (int i = 0; i < pow(3, threatLevel) - 1; i++) {
+                    partToAdd->push_back(
+                        std::tuple<repast::Point<double>, AgentType>(
+                            repast::Point<double>(-1, -1), AntibodyType));
+                }
             }
         }
     }

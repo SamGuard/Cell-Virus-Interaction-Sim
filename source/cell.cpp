@@ -56,7 +56,7 @@ void Cell::interact(
             if (r < 0.001) {
                 setNextState(Dead);
                 return;
-            }else if (r < 0.001 + 0.01) {
+            } else if (r < 0.001 + 0.01) {
                 setNextState(Healthy);
                 return;
             }

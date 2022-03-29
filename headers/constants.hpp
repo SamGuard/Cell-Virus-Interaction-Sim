@@ -15,7 +15,7 @@ enum AgentType {
     CellType,
     InterferonType,
     InnateImmuneType,
-    AntigenType
+    AntibodyType
 };
 
 extern double cellDeathChanceOvercrowding;

@@ -83,10 +83,13 @@ class InnateImmune : public Particle {
         std::set<Particle*>* remove);
 };
 
-class Antigen : public Particle {
+class Antibody : public Particle {
    public:
-    Antigen(repast::AgentId id, Vector vel, double birthTick)
-        : Particle(id, AntigenType, vel, birthTick) {}
+    Antibody(repast::AgentId id, Vector vel, double birthTick)
+        : Particle(id, AntibodyType, vel, birthTick) {}
+
+    Antibody(Particle p)
+        : Particle(p.getId(), AntibodyType, p.getVel(), p.getBirthTick()) {}
     
     void interact(
         repast::SharedContext<Particle>* context,
