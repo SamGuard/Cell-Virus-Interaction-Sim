@@ -1,3 +1,6 @@
+#ifndef DATA_COLLECTOR
+#define DATA_COLLECTOR
+
 #include <stdlib.h>
 
 #include <fstream>
@@ -85,3 +88,5 @@ class AgentTotals<Cell> : public repast::TDataSource<int> {
         return count;
     }
 };
+
+#endif

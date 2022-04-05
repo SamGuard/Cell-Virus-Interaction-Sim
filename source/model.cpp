@@ -4,10 +4,25 @@
 
 #include <boost/mpi.hpp>
 #include <ctime>
+#include <fstream>
 #include <functional>
+#include <iostream>
+#include <tuple>
 #include <vector>
 
+#include "constants.hpp"
+#include "parameter_config.hpp"
+#include "repast_hpc/AgentRequest.h"
+#include "repast_hpc/GridComponents.h"
+#include "repast_hpc/Properties.h"
+#include "repast_hpc/Random.h"
+#include "repast_hpc/SVDataSet.h"
 #include "repast_hpc/SVDataSetBuilder.h"
+#include "repast_hpc/SVDataSource.h"
+#include "repast_hpc/Schedule.h"
+#include "repast_hpc/SharedContext.h"
+#include "repast_hpc/SharedDiscreteSpace.h"
+#include "repast_hpc/TDataSource.h"
 
 unsigned long int particleIdCount;
 
@@ -16,6 +31,7 @@ SpaceTranslator spaceTrans;
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
+    paramConfig = ParameterConfig(props);
     // Contexts
     contexts.part = new repast::SharedContext<Particle>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);

@@ -1,28 +1,20 @@
 #ifndef MODEL
 #define MODEL
 
-#include <stdio.h>
-
-#include <boost/mpi.hpp>
-#include <fstream>
-#include <iostream>
+#include <string>
 #include <tuple>
+#include <vector>
 
+#include "repast_hpc/Properties.h"
+#include "repast_hpc/Schedule.h"
+#include "data_collector.hpp"
+
+#include "cell.hpp"
 #include "communicators.hpp"
 #include "data_collector.hpp"
 #include "human_response.hpp"
+#include "parameter_config.hpp"
 #include "particle.hpp"
-#include "repast_hpc/AgentRequest.h"
-#include "repast_hpc/GridComponents.h"
-#include "repast_hpc/Properties.h"
-#include "repast_hpc/Random.h"
-#include "repast_hpc/SVDataSet.h"
-#include "repast_hpc/SVDataSetBuilder.h"
-#include "repast_hpc/SVDataSource.h"
-#include "repast_hpc/Schedule.h"
-#include "repast_hpc/SharedContext.h"
-#include "repast_hpc/SharedDiscreteSpace.h"
-#include "repast_hpc/TDataSource.h"
 
 struct AgentContexts {
     repast::SharedContext<Particle>* part;
@@ -63,6 +55,7 @@ class Model {
     AgentComm comms;
 
     HumanResponse human;
+    ParameterConfig paramConfig;
 
     DataCollector dataCol;
     std::stringstream simData;

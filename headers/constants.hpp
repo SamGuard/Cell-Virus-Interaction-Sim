@@ -18,8 +18,48 @@ enum AgentType {
     AntibodyType
 };
 
-extern double cellDeathChanceOvercrowding;
+// Variables needed everywhere
 extern unsigned long int particleIdCount;
+
+// Parameters
+// Cell
+extern double CELL_DEATH_LENGTH;  // How long a dead cell will stay dead before
+                                  // it is cleared
+extern double CELL_DIVIDE_PROB;   // Probability that an empty cell will become
+                                  // healthy multiplied by the amount of healthy
+                                  // cells surrounding it
+extern double
+    CELL_BYSTANDER_DEATH_PROB;  // Probability a bystander cell will die
+extern double CELL_REVERT_BYSTANDER_PROB;  // Probability that bystander will
+                                           // revert to healthy cell
+extern double
+    CELL_BYSTANDER_INFECT_SKIP_PROB;  // Probability that the infection step
+                                      // will be skipped if the cell is a
+                                      // bystander
+extern double CELL_INFECT_POW_BASE;  // Base for the prob calculation that there
+                                     // is a chance that a cell can be infected
+                                     // by one of the nearby viruses
+extern double CELL_PROB_TO_BYSTANDER_BASE;  // For each IFN particle around the
+                                            // cell this value will be raised to
+                                            // the power of that value
+extern int CELL_IFN_SPAWN_NUMBER;  // The amount of IFNs to add each tick from a
+                                   // bystander cell
+extern double
+    CELL_CHANCE_TO_SPAWN_VIRUS;  // The chance each tick for a infected cell to
+                                 // die and release virons
+
+// Virus
+extern double VIRUS_LIFETIME;
+
+// Innate
+extern double INNATE_LIFETIME;
+
+// IFN
+extern double IFN_LIFETIME;
+
+// Antibody
+extern double ANTIBODY_LIFETIME;
+
 // Receptor/Attatchment Types
 #define REC_VIRUS 1
 #define REC_CELL 2

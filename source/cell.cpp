@@ -1,6 +1,9 @@
 #include "cell.hpp"
 
+#include "constants.hpp"
 #include "particle.hpp"
+#include "repast_hpc/Schedule.h"
+#include "repast_hpc/VN2DGridQuery.h"
 
 void Cell::interact(
     repast::SharedContext<Cell>* cellContext,
@@ -19,7 +22,7 @@ void Cell::interact(
     cellSpace->getLocation(id, loc);
     switch (getState()) {
         case Dead: {
-            if (getDeathTick() + 200 < currentTick) {
+            if (getDeathTick() + CELL_DEATH_LENGTH < currentTick) {
                 setNextState(Empty);
             }
             break;
@@ -43,7 +46,7 @@ void Cell::interact(
                 it++;
             }
 
-            if (rand->nextDouble() < (double)healthyC * 0.125) {
+            if (rand->nextDouble() < (double)healthyC * CELL_DIVIDE_PROB) {
                 setNextState(Healthy);
             }
             break;
@@ -53,17 +56,16 @@ void Cell::interact(
         // being infected
         case Bystander: {
             double r = rand->nextDouble();
-            if (r < 0.001) {
+            if (r < CELL_BYSTANDER_DEATH_PROB) {
                 setNextState(Dead);
                 return;
-            } else if (r < 0.001 + 0.01) {
+            } else if (r <
+                       CELL_BYSTANDER_DEATH_PROB + CELL_REVERT_BYSTANDER_PROB) {
                 setNextState(Healthy);
                 return;
             }
-            if (rand->nextDouble() > 0.9) {
-                return;
-            }
         }
+        // FALL THROUGH
         // The cell will look at nearby viruses and have a chance of becoming
         // infected
         case Healthy: {
@@ -83,6 +85,7 @@ void Cell::interact(
 
             for (std::vector<Particle*>::iterator it = agents.begin();
                  it != agents.end(); it++) {
+                if (!isLocal((*it)->getId())) continue;
                 switch ((*it)->getAgentType()) {
                     case VirusType:
                         virusCount++;
@@ -95,7 +98,9 @@ void Cell::interact(
                 }
             }
 
-            if (rand->nextDouble() < 1.0 - pow(0.80, virusCount)) {
+            if ((getState() == Healthy ||
+                 rand->nextDouble() > CELL_BYSTANDER_INFECT_SKIP_PROB) &&
+                rand->nextDouble() > pow(CELL_INFECT_POW_BASE, virusCount)) {
                 // A virus cannot infect two cells at once so if the chosen
                 // virus is already in the set then try find another As well
                 // as checking if the receptors/attatchment factors match
@@ -117,7 +122,8 @@ void Cell::interact(
                     setNextState(Infected);
                 }
             }
-            if (rand->nextDouble() < 1.0 - pow(0.50, ifnCount)) {
+            if (rand->nextDouble() >
+                pow(CELL_PROB_TO_BYSTANDER_BASE, ifnCount)) {
                 bool canFind = false;
 
                 for (std::vector<Particle*>::iterator it = agents.begin();
@@ -140,7 +146,7 @@ void Cell::interact(
         }
 
         case Infected: {
-            if (rand->nextDouble() < 0.1) {
+            if (rand->nextDouble() < CELL_CHANCE_TO_SPAWN_VIRUS) {
                 for (int i = 0; i < 2; i++) {
                     add->push_back(std::tuple<repast::Point<double>, AgentType>(
                         spaceTrans.cellToPart(loc), VirusType));
@@ -148,7 +154,7 @@ void Cell::interact(
                 setNextState(Dead);
                 return;
             }
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < CELL_IFN_SPAWN_NUMBER; i++) {
                 add->push_back(std::tuple<repast::Point<double>, AgentType>(
                     spaceTrans.cellToPart(loc), InterferonType));
             }

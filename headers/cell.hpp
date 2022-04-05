@@ -2,9 +2,6 @@
 #define CELL
 
 #include "agentbase.hpp"
-#include "particle.hpp"
-#include "repast_hpc/Schedule.h"
-#include "repast_hpc/VN2DGridQuery.h"
 
 enum CellState { Dead, Healthy, Infected, Empty, Bystander };
 

@@ -1,10 +1,13 @@
 include ./env
 
-build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o
+build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o ./objects/parameter_config.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS)
 
-build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o
+build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o ./objects/parameter_config.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
+
+./objects/parameter_config.o: ./headers/constants.hpp ./source/parameter_config.cpp
+	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/parameter_config.cpp -o ./objects/parameter_config.o $(COMP_FLAGS)	
 
 ./objects/data_collector.o: ./headers/constants.hpp ./source/data_collector.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/data_collector.cpp -o ./objects/data_collector.o $(COMP_FLAGS)
@@ -18,7 +21,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 ./objects/communicators.o: ./headers/constants.hpp ./headers/particle.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o $(COMP_FLAGS)
 
-./objects/model.o: ./headers/constants.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/human_response.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
+./objects/model.o: ./headers/constants.hpp ./headers/parameter_config.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/human_response.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/model.cpp -o ./objects/model.o $(COMP_FLAGS)
 
 ./objects/main.o: ./headers/constants.hpp ./headers/model.hpp ./source/main.cpp 
