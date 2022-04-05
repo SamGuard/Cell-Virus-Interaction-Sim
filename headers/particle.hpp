@@ -7,8 +7,6 @@
 #include "cell.hpp"
 #include "constants.hpp"
 #include "repast_hpc/AgentId.h"
-#include "repast_hpc/Moore2DGridQuery.h"
-#include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"
 #include "repast_hpc/SharedDiscreteSpace.h"
@@ -90,7 +88,7 @@ class Antibody : public Particle {
 
     Antibody(Particle p)
         : Particle(p.getId(), AntibodyType, p.getVel(), p.getBirthTick()) {}
-    
+
     void interact(
         repast::SharedContext<Particle>* context,
         repast::SharedDiscreteSpace<Particle, repast::StrictBorders,

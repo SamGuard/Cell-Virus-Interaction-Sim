@@ -1,8 +1,12 @@
 #include "particle.hpp"
 
 #include "cell.hpp"
+#include "repast_hpc/AgentId.h"
 #include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Point.h"
+#include "repast_hpc/SharedContext.h"
+#include "repast_hpc/SharedContinuousSpace.h"
+#include "repast_hpc/SharedDiscreteSpace.h"
 
 void Particle::interact(
     repast::SharedContext<Particle>* context,
@@ -14,7 +18,7 @@ void Particle::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
-    // Inter-virus interaction, not in use yet
+    // Inter-virus interaction, not in use (yet)
     /*
     std::vector<Virus*> agentsToPlay;
     std::vector<int> agentLocDiscrete;
@@ -27,9 +31,9 @@ void Particle::interact(
     while (agentToPlay != agentsToPlay.end()) {}
     */
     // birthTick + lifetime
-    if (birthTick + 100 < repast::RepastProcess::instance()
-                              ->getScheduleRunner()
-                              .currentTick() &&
+    if (birthTick + VIRUS_LIFETIME < repast::RepastProcess::instance()
+                                         ->getScheduleRunner()
+                                         .currentTick() &&
         remove->find(this) == remove->end()) {
         remove->insert(this);
     }
@@ -76,9 +80,9 @@ void InnateImmune::interact(
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
     repast::Random* rand = repast::Random::instance();
-    if (birthTick + 500 < repast::RepastProcess::instance()
-                              ->getScheduleRunner()
-                              .currentTick() &&
+    if (birthTick + INNATE_LIFETIME < repast::RepastProcess::instance()
+                                          ->getScheduleRunner()
+                                          .currentTick() &&
         remove->find(this) == remove->end() && isLocal(this->getId())) {
         remove->insert(this);
         return;
@@ -90,14 +94,16 @@ void InnateImmune::interact(
     std::vector<Particle*> agents;
 
     repast::Moore2DGridQuery<Particle> query(partDiscreteSpace);
-    query.query(repast::Point<int>((int)loc[0], (int)loc[1]), 5, true, agents);
+    query.query(repast::Point<int>((int)loc[0], (int)loc[1]), INNATE_RANGE,
+                true, agents);
 
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;
         if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
-            remove->find(a) == remove->end() && rand->nextDouble() < 0.004) {
-            if (rand->nextDouble() < 1.0) {
+            remove->find(a) == remove->end() &&
+            rand->nextDouble() < INNATE_KILL_VIRUS_PROB) {
+            if (rand->nextDouble() < INNATE_RECRUIT_PROB) {
                 add->push_back(std::tuple<repast::Point<double>, AgentType>(
                     repast::Point<double>(-1, -1), InnateImmuneType));
             }
@@ -117,7 +123,7 @@ void Antibody::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
-    if (birthTick + 900 <
+    if (birthTick + ANTIBODY_LIFETIME <
         repast::RepastProcess::instance()->getScheduleRunner().currentTick()) {
         if (remove->find(this) == remove->end()) {
             remove->insert(this);
@@ -130,14 +136,16 @@ void Antibody::interact(
 
     std::vector<Particle*> agents;
     repast::Moore2DGridQuery<Particle> query(partDiscreteSpace);
-    query.query(repast::Point<int>(loc[0], loc[1]), 2, true, agents);
-
+    query.query(repast::Point<int>(loc[0], loc[1]), ANTIBODY_RANGE, true,
+                agents);
+    // See if theres a virus to "kill" nearby
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;
         if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
-            repast::Random::instance()->nextDouble() < 0.75 &&
+            repast::Random::instance()->nextDouble() < ANTIBODY_KILL_PROB &&
             remove->find(a) == remove->end()) {
+            // Remove the virus and itselfF
             remove->insert(a);
             if (remove->find(this) == remove->end()) {
                 remove->insert(this);

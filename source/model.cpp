@@ -45,13 +45,18 @@ Model::Model(std::string propsFile, int argc, char** argv,
     // Define simulation parameters
     lifetime = stoi(props->getProperty("lifetime"));
     virusCount = stoi(props->getProperty("virusCount"));
-    cellCount = stoi(props->getProperty("cellCount"));
+    double areaSize = stoi(props->getProperty("SIM_SIZE"));
+    double sizeOfCell = stod(props->getProperty("SIZE_OF_EPI_CELL"));
 
     std::vector<int> processDims;
     processDims.push_back(std::stoi(props->getProperty("procDimsX")));
     processDims.push_back(std::stoi(props->getProperty("procDimsY")));
 
-    double areaSize = 200;
+    {
+        int worldSize = repast::RepastProcess::instance()->worldSize();
+        cellCount = areaSize / sizeOfCell;
+        cellCount = cellCount + (worldSize - (cellCount % worldSize));
+    }
 
     repast::Point<double> pOrigin(0, 0);
     repast::Point<double> pExtent(areaSize, areaSize);
@@ -61,7 +66,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     spaceTrans = SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
 
-    human = HumanResponse();
+    human = HumanResponse(areaSize);
 
     // Virus spaces
     {
@@ -141,6 +146,8 @@ void Model::initDataLogging() {
                                              std::plus<int>()));
     builder.addDataSource(
         createSVDataSource("Total_Antibodies", antiB, std::plus<int>()));
+    builder.addDataSource(
+        createSVDataSource("threat_level", &human, std::plus<double>()));
 
     // Use the builder to create the data set
     agentTotalData = builder.createDataSet();

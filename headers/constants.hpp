@@ -22,6 +22,7 @@ enum AgentType {
 extern unsigned long int particleIdCount;
 
 // Parameters
+
 // Cell
 extern double CELL_DEATH_LENGTH;  // How long a dead cell will stay dead before
                                   // it is cleared
@@ -40,25 +41,36 @@ extern double CELL_INFECT_POW_BASE;  // Base for the prob calculation that there
                                      // is a chance that a cell can be infected
                                      // by one of the nearby viruses
 extern double CELL_PROB_TO_BYSTANDER_BASE;  // For each IFN particle around the
-                                            // cell this value will be raised to
-                                            // the power of that value
+// cell this value will be raised to
+// the power of that value
+extern int
+    CELL_VIRUS_SPAWN_COUNT;  // Amount of viruses to spawn from an infected cell
 extern int CELL_IFN_SPAWN_NUMBER;  // The amount of IFNs to add each tick from a
                                    // bystander cell
 extern double
     CELL_CHANCE_TO_SPAWN_VIRUS;  // The chance each tick for a infected cell to
                                  // die and release virons
 
-// Virus
+// Particles
 extern double VIRUS_LIFETIME;
-
-// Innate
 extern double INNATE_LIFETIME;
-
-// IFN
-extern double IFN_LIFETIME;
-
-// Antibody
+extern int INNATE_RANGE;               // How far away can it kill viruses/cells
+extern double INNATE_KILL_VIRUS_PROB;  // Chance to kill a virus nearby
+extern double INNATE_KILL_CELL_PROB;   // Chance to kill an infected cell nearby
+extern double INNATE_RECRUIT_PROB;     // Chance to recruit another innate cell
 extern double ANTIBODY_LIFETIME;
+extern int ANTIBODY_RANGE;  // The range at which viruses can be destroyed
+extern double ANTIBODY_KILL_PROB;  // Chance to kill when in range
+
+// Human response
+extern double AVG_TICKS_TO_FIND_ANTIBODY;  // Time until the correct recpetor
+                                           // for the virus has been found
+extern double
+    DEV_TICKS_TO_FIND_ANTIBODY;  // how much variance is there from the average
+extern double PROB_PER_UNIT_TO_SPAWN_INNATE;  // Probability that a new innate
+                                              // cell will be created per unit
+extern double THREAT_LEVEL_SENSITIVITY;  // Changes how rapidly the threat level
+                                         // can change
 
 // Receptor/Attatchment Types
 #define REC_VIRUS 1

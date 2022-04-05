@@ -147,7 +147,7 @@ void Cell::interact(
 
         case Infected: {
             if (rand->nextDouble() < CELL_CHANCE_TO_SPAWN_VIRUS) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < CELL_VIRUS_SPAWN_COUNT; i++) {
                     add->push_back(std::tuple<repast::Point<double>, AgentType>(
                         spaceTrans.cellToPart(loc), VirusType));
                 }

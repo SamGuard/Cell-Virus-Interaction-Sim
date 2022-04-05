@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "constants.hpp"
 #include "cell.hpp"
+#include "constants.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/SVDataSet.h"
 #include "repast_hpc/TDataSource.h"
@@ -62,7 +62,7 @@ class AgentTotals : public repast::TDataSource<int> {
     }
 };
 
-template<>
+template <>
 class AgentTotals<Cell> : public repast::TDataSource<int> {
    private:
     AgentType type;
@@ -70,7 +70,8 @@ class AgentTotals<Cell> : public repast::TDataSource<int> {
     CellState stateFilter;
 
    public:
-    AgentTotals(repast::SharedContext<Cell> *cont, AgentType type, CellState state) {
+    AgentTotals(repast::SharedContext<Cell> *cont, AgentType type,
+                CellState state) {
         this->cont = cont;
         this->type = type;
         this->stateFilter = state;
@@ -81,12 +82,12 @@ class AgentTotals<Cell> : public repast::TDataSource<int> {
         for (repast::SharedContext<Cell>::const_local_iterator it =
                  cont->localBegin();
              it != cont->localEnd(); it++) {
-            if ((*it)->getAgentType() == type && (*it)->getState() == stateFilter) {
+            if ((*it)->getAgentType() == type &&
+                (*it)->getState() == stateFilter) {
                 count++;
             }
         }
         return count;
     }
 };
-
 #endif
