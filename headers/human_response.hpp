@@ -30,24 +30,33 @@ class HumanResponse : public repast::TDataSource<double> {
         // this process controls
         double innateToAdd = area * PROB_PER_UNIT_TO_SPAWN_INNATE;
 
-        while (repast::Random::instance()->nextDouble() < innateToAdd) {
+        while (innateToAdd >= 1 ||
+               repast::Random::instance()->nextDouble() < innateToAdd) {
             partToAdd->push_back(std::tuple<repast::Point<double>, AgentType>(
                 repast::Point<double>(-1, -1), InnateImmuneType));
             innateToAdd--;
         }
 
         {
-            threatLevel = (THREAT_LEVEL_SENSITIVITY * threatLevel + 1.0 -
-                           1.0 / (1.0 + removeVirusCount)) /
-                          (THREAT_LEVEL_SENSITIVITY + 1);
+            threatLevel =
+                (THREAT_LEVEL_SMOOTHING * threatLevel + 1.0 -
+                 1.0 / (1.0 + THREAT_LEVEL_SENSITIVITY * removeVirusCount)) /
+                (THREAT_LEVEL_SMOOTHING + 1);
             if (repast::RepastProcess::instance()
                     ->getScheduleRunner()
                     .currentTick() > tickToFindCure) {
                 cureFound = true;
-                for (int i = 0; i < pow(3, threatLevel) - 1; i++) {
+
+                double antibodyToAdd =
+                    area * PROB_PER_UNIT_TO_SPAWN_ANTIBODY * threatLevel;
+
+                while (antibodyToAdd >= 1 ||
+                       repast::Random::instance()->nextDouble() <
+                           antibodyToAdd) {
                     partToAdd->push_back(
                         std::tuple<repast::Point<double>, AgentType>(
                             repast::Point<double>(-1, -1), AntibodyType));
+                    antibodyToAdd--;
                 }
             }
         }

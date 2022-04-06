@@ -8,13 +8,13 @@
 #include <vector>
 
 const int NUM_PROCS = 4;
-const int NUM_CELLS = 128;
-const int WIDTH = 600;
-const int HEIGHT = 600;
-const double CELL_SIZE = WIDTH / NUM_CELLS;
-const double SIM_EXTENT = 1600;
-const double SCALE = WIDTH / SIM_EXTENT;
+const int NUM_CELLS = 15;
+const double SIM_EXTENT = 200;
 const int MAX_LAYERS = 2;
+int WIDTH;
+int HEIGHT;
+double SCALE;
+double CELL_SIZE;
 
 enum State { Dead, Healthy, Infected, Empty, Bystander };
 enum AgentTypes {
@@ -396,6 +396,11 @@ void mainLoop() {
 }
 
 int main() {
+    WIDTH = 600;
+    WIDTH = WIDTH + (NUM_CELLS - (WIDTH % NUM_CELLS));
+    HEIGHT = WIDTH;
+    SCALE = WIDTH / SIM_EXTENT;
+    CELL_SIZE = WIDTH / NUM_CELLS;
     mainLoop();
     return 0;
 }

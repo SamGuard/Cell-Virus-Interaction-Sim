@@ -55,6 +55,6 @@ run_vis:
 
 movie:
 	cd ./data_visualiser/; \
-	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p output.mp4
+	ffmpeg -framerate 20 -i ./images/tick_%00d.png -c:v libx264 -profile:v high -crf 10 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" output.mp4
 
 full: build build_vis run run_vis movie	

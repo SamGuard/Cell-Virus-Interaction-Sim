@@ -67,10 +67,14 @@ extern double AVG_TICKS_TO_FIND_ANTIBODY;  // Time until the correct recpetor
                                            // for the virus has been found
 extern double
     DEV_TICKS_TO_FIND_ANTIBODY;  // how much variance is there from the average
-extern double PROB_PER_UNIT_TO_SPAWN_INNATE;  // Probability that a new innate
-                                              // cell will be created per unit
-extern double THREAT_LEVEL_SENSITIVITY;  // Changes how rapidly the threat level
+extern double PROB_PER_UNIT_TO_SPAWN_INNATE;    // Probability that a new innate
+                                                // cell will be created per unit
+extern double PROB_PER_UNIT_TO_SPAWN_ANTIBODY;  // The probability that a new
+                                                // antibody will spawn per unit
+extern double THREAT_LEVEL_SMOOTHING;    // Changes how rapidly the threat level
                                          // can change
+extern double THREAT_LEVEL_SENSITIVITY;  // Changes how sensitive the threat
+                                         // level is to the environment
 
 // Receptor/Attatchment Types
 #define REC_VIRUS 1
