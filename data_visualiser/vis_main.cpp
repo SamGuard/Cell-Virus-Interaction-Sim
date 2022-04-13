@@ -8,8 +8,8 @@
 #include <vector>
 
 const int NUM_PROCS = 4;
-const int NUM_CELLS = 15;
-const double SIM_EXTENT = 200;
+const int NUM_CELLS = 22;
+const double SIM_EXTENT = 1000;
 const int MAX_LAYERS = 2;
 int WIDTH;
 int HEIGHT;
@@ -228,29 +228,29 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
 
         std::string id = makeID(agentId, sProc, type);
         Agent *agent;
-
+        double scale = 10;
         switch (type) {
             case BaseAgentType:
                 std::cout << "Cannot add base agent as its a template class"
                           << std::endl;
                 return;
             case InterferonType:
-                agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
+                agent = new Particle(0, 0, scale * 0.25, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;
             case InnateImmuneType:
-                agent = new Particle(0, 0, 0.5, sf::Color(), Healthy,
+                agent = new Particle(0, 0, scale * 0.5, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;
             case VirusType:
-                agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
+                agent = new Particle(0, 0, scale * 0.25, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;
             case AntibodyType:
-                agent = new Particle(0, 0, 0.25, sf::Color(), Healthy,
+                agent = new Particle(0, 0, scale * 0.25, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;

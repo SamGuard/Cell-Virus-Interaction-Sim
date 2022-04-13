@@ -25,13 +25,14 @@
 #include "repast_hpc/TDataSource.h"
 
 unsigned long int particleIdCount;
+double SIM_SCALE;
 
 SpaceTranslator spaceTrans;
 
 Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
-    paramConfig = ParameterConfig(props);
+
     // Contexts
     contexts.part = new repast::SharedContext<Particle>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
@@ -45,8 +46,13 @@ Model::Model(std::string propsFile, int argc, char** argv,
     // Define simulation parameters
     lifetime = stoi(props->getProperty("lifetime"));
     virusCount = stoi(props->getProperty("virusCount"));
-    double areaSize = stoi(props->getProperty("SIM_SIZE"));
-    double sizeOfCell = stod(props->getProperty("SIZE_OF_EPI_CELL"));
+    double areaSize =
+        stod(props->getProperty("SIM_SIZE"));  // Size of the area to simulate
+    double simSize = 1000;                     // Size of area in the simulation
+    SIM_SCALE = simSize / areaSize;
+    double densityOfCells = stod(props->getProperty("DENSITY_OF_CELLS"));
+
+    paramConfig = ParameterConfig(props);
 
     std::vector<int> processDims;
     processDims.push_back(std::stoi(props->getProperty("procDimsX")));
@@ -54,17 +60,17 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     {
         int worldSize = repast::RepastProcess::instance()->worldSize();
-        cellCount = areaSize / sizeOfCell;
+        cellCount = areaSize * areaSize * densityOfCells;
         cellCount = cellCount + (worldSize - (cellCount % worldSize));
     }
 
     repast::Point<double> pOrigin(0, 0);
-    repast::Point<double> pExtent(areaSize, areaSize);
+    repast::Point<double> pExtent(simSize, simSize);
 
     repast::Point<double> cOrigin(0, 0);
     repast::Point<double> cExtent(cellCount, cellCount);
 
-    spaceTrans = SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, areaSize);
+    spaceTrans = SpaceTranslator(pOrigin, pExtent, cOrigin, cExtent, simSize);
 
     human = HumanResponse(areaSize);
 
@@ -430,24 +436,34 @@ void Model::addParticle(repast::Point<double> loc, AgentType t) {
     id.currentRank(rank);
 
     Vector vel;
-    vel.x = randNum->nextDouble() - 0.5;
-    vel.y = randNum->nextDouble() - 0.5;
+    double dir = randNum->nextDouble() * 3.141 * 2.0;
+    vel.x = cos(dir);
+    vel.y = sin(dir);
 
     Particle* agent;
 
     switch (t) {
         case VirusType:
+            vel.x *= VIRUS_SPEED;
+            vel.y *= VIRUS_SPEED;
             agent = new Virus(id, vel, tick);
             agent->addAttachFactor(REC_CELL);
             break;
         case InterferonType:
+            vel.x *= IFN_SPEED;
+            vel.y *= IFN_SPEED;
             agent = new Interferon(id, vel, tick);
             agent->addAttachFactor(REC_CELL);
             break;
         case InnateImmuneType:
+
+            vel.x *= INNATE_SPEED;
+            vel.y *= INNATE_SPEED;
             agent = new InnateImmune(id, vel, tick);
             break;
         case AntibodyType:
+            vel.x *= ANTIBODY_SPEED;
+            vel.y *= ANTIBODY_SPEED;
             agent = new Antibody(id, vel, tick);
             agent->addAttachFactor(REC_CELL);
             break;

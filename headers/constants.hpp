@@ -18,6 +18,8 @@ enum AgentType {
     AntibodyType
 };
 
+extern double SIM_SCALE;
+
 // Variables needed everywhere
 extern unsigned long int particleIdCount;
 
@@ -53,14 +55,18 @@ extern double
 
 // Particles
 extern double VIRUS_LIFETIME;
+extern double VIRUS_SPEED;
 extern double INNATE_LIFETIME;
+extern double INNATE_SPEED;
 extern int INNATE_RANGE;               // How far away can it kill viruses/cells
 extern double INNATE_KILL_VIRUS_PROB;  // Chance to kill a virus nearby
 extern double INNATE_KILL_CELL_PROB;   // Chance to kill an infected cell nearby
 extern double INNATE_RECRUIT_PROB;     // Chance to recruit another innate cell
 extern double ANTIBODY_LIFETIME;
+extern double ANTIBODY_SPEED;
 extern int ANTIBODY_RANGE;  // The range at which viruses can be destroyed
 extern double ANTIBODY_KILL_PROB;  // Chance to kill when in range
+extern double IFN_SPEED;
 
 // Human response
 extern double AVG_TICKS_TO_FIND_ANTIBODY;  // Time until the correct recpetor
@@ -117,6 +123,7 @@ class SpaceTranslator {
         cellPartScale.push_back(partExtent[1] / (double)cellExtent[1]);
 
         _cellSize = areaSize / cellExtent[0];
+        std::cout << _cellSize << std::endl;
     }
 
     inline double cellSize() { return _cellSize; }

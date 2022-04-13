@@ -14,12 +14,13 @@ int CELL_VIRUS_SPAWN_COUNT, CELL_IFN_SPAWN_NUMBER;
 // Particle
 double VIRUS_LIFETIME, INNATE_LIFETIME, INNATE_KILL_VIRUS_PROB,
     INNATE_KILL_CELL_PROB, INNATE_RECRUIT_PROB, ANTIBODY_LIFETIME,
-    ANTIBODY_KILL_PROB;
+    ANTIBODY_KILL_PROB, VIRUS_SPEED, IFN_SPEED, INNATE_SPEED, ANTIBODY_SPEED;
 int INNATE_RANGE, ANTIBODY_RANGE;
 
 // Human repsonse
 double AVG_TICKS_TO_FIND_ANTIBODY, DEV_TICKS_TO_FIND_ANTIBODY,
-    PROB_PER_UNIT_TO_SPAWN_INNATE, THREAT_LEVEL_SENSITIVITY;
+    PROB_PER_UNIT_TO_SPAWN_INNATE, THREAT_LEVEL_SENSITIVITY,
+    THREAT_LEVEL_SMOOTHING, PROB_PER_UNIT_TO_SPAWN_ANTIBODY;
 
 ParameterConfig::ParameterConfig(repast::Properties *props) {
     CELL_DEATH_LENGTH = std::stod(props->getProperty("CELL_DEATH_LENGTH"));
@@ -42,7 +43,9 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
         std::stoi(props->getProperty("CELL_IFN_SPAWN_NUMBER"));
 
     VIRUS_LIFETIME = std::stod(props->getProperty("VIRUS_LIFETIME"));
+    VIRUS_SPEED = std::stod(props->getProperty("VIRUS_SPEED"));
     INNATE_LIFETIME = std::stod(props->getProperty("INNATE_LIFETIME"));
+    INNATE_SPEED = std::stod(props->getProperty("INNATE_SPEED"));
     INNATE_RANGE = std::stoi(props->getProperty("INNATE_RANGE"));
     INNATE_KILL_VIRUS_PROB =
         std::stod(props->getProperty("INNATE_KILL_VIRUS_PROB"));
@@ -50,7 +53,9 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
         std::stod(props->getProperty("INNATE_KILL_CELL_PROB"));
     INNATE_RECRUIT_PROB = std::stod(props->getProperty("INNATE_RECRUIT_PROB"));
     ANTIBODY_LIFETIME = std::stod(props->getProperty("ANTIBODY_LIFETIME"));
+    ANTIBODY_SPEED = std::stod(props->getProperty("ANTIBODY_SPEED"));
     ANTIBODY_KILL_PROB = std::stod(props->getProperty("ANTIBODY_KILL_PROB"));
+    IFN_SPEED = std::stod(props->getProperty("IFN_SPEED"));
 
     AVG_TICKS_TO_FIND_ANTIBODY =
         std::stod(props->getProperty("AVG_TICKS_TO_FIND_ANTIBODY"));
@@ -58,8 +63,22 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
         std::stod(props->getProperty("DEV_TICKS_TO_FIND_ANTIBODY"));
     PROB_PER_UNIT_TO_SPAWN_INNATE =
         std::stod(props->getProperty("PROB_PER_UNIT_TO_SPAWN_INNATE"));
+    PROB_PER_UNIT_TO_SPAWN_ANTIBODY =
+        std::stod(props->getProperty("PROB_PER_UNIT_TO_SPAWN_ANTIBODY"));
     THREAT_LEVEL_SENSITIVITY =
         std::stod(props->getProperty("THREAT_LEVEL_SENSITIVITY"));
+    THREAT_LEVEL_SMOOTHING =
+        std::stod(props->getProperty("THREAT_LEVEL_SMOOTHING"));
+
+
+    // Scale any units
+    // Physical
+    VIRUS_SPEED *= SIM_SCALE;
+    IFN_SPEED *= SIM_SCALE;
+    INNATE_SPEED *= SIM_SCALE;
+    ANTIBODY_SPEED *= SIM_SCALE;
+
+    // Temporal
 }
 
 ParameterConfig::ParameterConfig() {

@@ -33,7 +33,7 @@ void Cell::interact(
             repast::Point<int> queryCent(loc);
 
             std::vector<Cell*> agents;
-            gridQ.query(queryCent, 1, false, agents);
+            gridQ.query(queryCent, spaceTrans.cellSize() / 2.01, false, agents);
 
             std::vector<Cell*>::iterator it = agents.begin();
             Cell* c;
@@ -104,7 +104,7 @@ void Cell::interact(
                 // A virus cannot infect two cells at once so if the chosen
                 // virus is already in the set then try find another As well
                 // as checking if the receptors/attatchment factors match
-                bool canFind = false;
+
 
                 for (std::vector<Particle*>::iterator it = agents.begin();
                      it != agents.end(); it++) {
@@ -113,13 +113,13 @@ void Cell::interact(
                     if (p->getAgentType() == VirusType &&
                         p->canAttach(receptorType) && isLocal(p->getId()) &&
                         remove->find(p) == remove->end()) {
-                        canFind = true;
                         remove->insert(p);
+                        setNextState(Infected);
+                        std::vector<int> loc;
+                        partDiscSpace->getLocation(p->getId(), loc);
+                        //std::cout << loc[0] << " " << loc[1] << std::endl;
                         break;
                     }
-                }
-                if (canFind) {
-                    setNextState(Infected);
                 }
             }
             if (rand->nextDouble() >

@@ -6,8 +6,9 @@ Current Time Worked: \
 
 ## Development
 - Implement innate cells destroying infected cells
+- Implement code that runs batches of tests
 - See if there are any other cells to add in
-- Make script to run batches of simulations with different parameters
+- Add flag in model.props that enables/disables tracking of positions and states
 
 ## Write-up
 - Figure out how you want to structure the report, think of headings and split the work up well.
