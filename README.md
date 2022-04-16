@@ -9,12 +9,14 @@ Current Time Worked: \
 - Implement code that runs batches of tests
 - See if there are any other cells to add in
 - Add flag in model.props that enables/disables tracking of positions and states
+- Change cell params
+- Change human params
 
 ## Write-up
-- Figure out how you want to structure the report, think of headings and split the work up well.
-- Add more todo's here after the step above^
+- Just gotta do it really
+- Sensitivity and other analysis of the ABM
 
 ## Data collection
-- Find data on a virus (probably influenza A) that can be used to compare to the results from your simulation
+- Find data on Influenza A that can be used to compare to the results from your simulation
 - Run batches of tests to see what parameters work the best to imitate the virus
 - Compile data and write about the findings

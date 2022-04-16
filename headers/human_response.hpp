@@ -11,7 +11,7 @@ class HumanResponse : public repast::TDataSource<double> {
     double threatLevel;
     double tickToFindCure;
     bool cureFound;
-    int area;
+    double area;
     HumanResponse() {}
     HumanResponse(double simSize) {
         cureFound = false;
