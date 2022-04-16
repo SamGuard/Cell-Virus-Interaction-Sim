@@ -3,6 +3,7 @@
 #include "constants.hpp"
 
 // Descriptions of each parameter are in constants.hpp
+bool VIS_DATA_OUTPUT;
 
 // Cell
 double CELL_DEATH_LENGTH, CELL_DIVIDE_PROB, CELL_BYSTANDER_DEATH_PROB,
@@ -23,6 +24,8 @@ double AVG_TICKS_TO_FIND_ANTIBODY, DEV_TICKS_TO_FIND_ANTIBODY,
     THREAT_LEVEL_SMOOTHING, PROB_PER_UNIT_TO_SPAWN_ANTIBODY;
 
 ParameterConfig::ParameterConfig(repast::Properties *props) {
+    VIS_DATA_OUTPUT = std::stoi(props->getProperty("VIS_DATA_OUTPUT")) == 1;
+
     CELL_DEATH_LENGTH = std::stod(props->getProperty("CELL_DEATH_LENGTH"));
     CELL_DIVIDE_PROB = std::stod(props->getProperty("CELL_DIVIDE_PROB"));
     CELL_BYSTANDER_DEATH_PROB =
@@ -79,7 +82,6 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
     INNATE_RANGE *= SIM_SCALE;
     ANTIBODY_SPEED *= SIM_SCALE;
     ANTIBODY_RANGE *= SIM_SCALE;
-    
 
     // Temporal
 }

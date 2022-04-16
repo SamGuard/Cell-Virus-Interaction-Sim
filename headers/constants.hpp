@@ -24,6 +24,8 @@ extern double SIM_SCALE;
 extern unsigned long int particleIdCount;
 
 // Parameters
+extern bool
+    VIS_DATA_OUTPUT;  // Whether or not to track agents positions and states
 
 // Cell
 extern double CELL_DEATH_LENGTH;  // How long a dead cell will stay dead before
@@ -58,7 +60,7 @@ extern double VIRUS_LIFETIME;
 extern double VIRUS_SPEED;
 extern double INNATE_LIFETIME;
 extern double INNATE_SPEED;
-extern double INNATE_RANGE;               // How far away can it kill viruses/cells
+extern double INNATE_RANGE;            // How far away can it kill viruses/cells
 extern double INNATE_KILL_VIRUS_PROB;  // Chance to kill a virus nearby
 extern double INNATE_KILL_CELL_PROB;   // Chance to kill an infected cell nearby
 extern double INNATE_RECRUIT_PROB;     // Chance to recruit another innate cell

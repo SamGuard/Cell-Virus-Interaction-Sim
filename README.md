@@ -8,9 +8,9 @@ Current Time Worked: \
 - Implement innate cells destroying infected cells
 - Implement code that runs batches of tests
 - See if there are any other cells to add in
-- Add flag in model.props that enables/disables tracking of positions and states
 - Change cell params
 - Change human params
+- Implement time scaling
 
 ## Write-up
 - Just gotta do it really

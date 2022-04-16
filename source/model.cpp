@@ -44,8 +44,8 @@ Model::Model(std::string propsFile, int argc, char** argv,
     comms.cellRec = new CellPackageReceiver(contexts.cell);
 
     // Define simulation parameters
-    lifetime = stoi(props->getProperty("lifetime"));
-    virusCount = stoi(props->getProperty("virusCount"));
+    lifetime = stoi(props->getProperty("LIFETIME"));
+    virusCount = stoi(props->getProperty("VIRUS_COUNT"));
     double areaSize =
         stod(props->getProperty("SIM_SIZE"));  // Size of the area to simulate
     double simSize = 1000;                     // Size of area in the simulation
@@ -114,7 +114,7 @@ void Model::initDataLogging() {
     rank = repast::RepastProcess::instance()->rank();
 
     // file to log agent positions and state to
-    {
+    if(VIS_DATA_OUTPUT){
         char* fileOutputName = (char*)malloc(128 * sizeof(char));
         sprintf(fileOutputName, "output/sim_%d.dat", rank);
         simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
@@ -517,6 +517,7 @@ void Model::removeParticles(std::set<Particle*>& v) {
 }
 
 void Model::collectParticleData() {
+    if(!VIS_DATA_OUTPUT) return;
     //  Array of tuples
     //  Tuple is id, start rank, is in this proc, x, y and state
     std::vector<std::tuple<repast::AgentId, double, double, int>> out;
@@ -564,6 +565,7 @@ void Model::collectParticleData() {
 }
 
 void Model::collectCellData() {
+    if(!VIS_DATA_OUTPUT) return;
     //  Array of tuples
     //  Tuple is id and agent state
     std::vector<std::tuple<repast::AgentId, int>> out;

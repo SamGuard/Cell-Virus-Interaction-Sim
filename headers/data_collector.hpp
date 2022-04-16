@@ -34,7 +34,10 @@ class DataCollector {
     void setPos(repast::AgentId id, std::vector<double> pos,
                 bool printInstruction);
     void setState(repast::AgentId id, int state, bool printInstruction);
-    void writeData() { (*file) << data->rdbuf(); }
+    void writeData() {
+        if (!VIS_DATA_OUTPUT) return;
+        (*file) << data->rdbuf();
+    }
 };
 
 template <class T>
