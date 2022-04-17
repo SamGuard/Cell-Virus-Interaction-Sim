@@ -6,6 +6,7 @@ Current Time Worked: \
 
 ## Development
 - Implement innate cells destroying infected cells
+- Implement cells infecting other cells
 - Implement code that runs batches of tests
 - See if there are any other cells to add in
 - Change cell params
