@@ -5,17 +5,17 @@ Current Time Worked: \
 # Todo List
 
 ## Development
-- Implement innate cells destroying infected cells
-- Implement cells infecting other cells
+- Implement time scaling
 - Implement code that runs batches of tests
 - See if there are any other cells to add in
 - Change cell params
 - Change human params
-- Implement time scaling
+
 
 ## Write-up
 - Just gotta do it really
 - Sensitivity and other analysis of the ABM
+- Change state variable names
 
 ## Data collection
 - Find data on Influenza A that can be used to compare to the results from your simulation

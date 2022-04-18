@@ -74,7 +74,7 @@ class Cell : public AgentBase {
                                     repast::SimpleAdder<Particle>>*
             partDiscSpace,
         std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
-        std::set<Particle*>* remove);
+        std::set<Particle*>* remove, int &removeInfectedCellCount);
 };
 
 /* Serializable Agent Package */

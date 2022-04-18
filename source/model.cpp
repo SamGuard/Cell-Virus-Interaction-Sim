@@ -332,6 +332,26 @@ void Model::move() {
 }
 
 void Model::interact() {
+    // Synchronise Cells
+    spaces.cellDisc->balance();
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStatus<Cell, CellPackage,
+                                 CellPackageProvider,
+                                 CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeProjectionInfo<Cell, CellPackage,
+                                    CellPackageProvider,
+                                    CellPackageReceiver>(
+            *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
+
+    repast::RepastProcess::instance()
+        ->synchronizeAgentStates<CellPackage, CellPackageProvider,
+                                 CellPackageReceiver>(*comms.cellProv,
+                                                          *comms.cellRec);
+                                                          
+
     std::vector<std::tuple<repast::Point<double>, AgentType>> partToAdd;
     std::set<Particle*> partToRemove;
     int innateCount = 0;
@@ -373,11 +393,12 @@ void Model::interact() {
     removeParticles(partToRemove);
 
     // Cell
+    int removeInfectedCellCount = 0;
     for (repast::SharedContext<Cell>::const_local_iterator it =
              contexts.cell->localBegin();
          it != contexts.cell->localEnd(); it++) {
         (*it)->interact(contexts.cell, spaces.cellDisc, spaces.partDisc,
-                        &partToAdd, &partToRemove);
+                        &partToAdd, &partToRemove, removeInfectedCellCount);
     }
 
     {
@@ -388,7 +409,7 @@ void Model::interact() {
                 removeVirusCount++;
             }
         }
-        human.response(innateCount, removeVirusCount, &partToAdd);
+        human.response(innateCount, removeVirusCount + removeInfectedCellCount, &partToAdd);
     }
 
     removeParticles(partToRemove);
