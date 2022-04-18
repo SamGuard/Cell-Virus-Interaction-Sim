@@ -269,12 +269,12 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentTotalData, &repast::DataSet::record)));
     runner.scheduleEvent(
-        1.4, 1000,
+        1.4, 10,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(
             agentTotalData, &repast::DataSet::write)));
 
     runner.scheduleEvent(
-        1.4, 1000,
+        1.4, 10,
         repast::Schedule::FunctorPtr(new repast::MethodFunctor<DataCollector>(
             &this->dataCol, &DataCollector::writeData)));
 
