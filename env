@@ -1,15 +1,15 @@
 MPICXX=mpicxx -std=c++11 
 
-BOOST_INCLUDE=-isystem/home/sam/sfw/boost-1_61_0/include/
-BOOST_LIB_DIR=-L/home/sam/sfw/boost-1_61_0/lib/
+BOOST_INCLUDE=-isystem/root/sfw/boost-1_61_0/include/
+BOOST_LIB_DIR=-L/root/sfw/boost-1_61_0/lib/
 BOOST_LIBS=-lboost_mpi-mt -lboost_serialization-mt -lboost_system-mt -lboost_filesystem-mt
 
-REPAST_HPC_INCLUDE=-isystem/home/sam/sfw/repast_hpc-2.3.1/include/
-REPAST_HPC_LIB_DIR=-L/home/sam/sfw/repast_hpc-2.3.1/lib/
+REPAST_HPC_INCLUDE=-isystem/root/sfw/repast_hpc-2.3.1/include/
+REPAST_HPC_LIB_DIR=-L/root/sfw/repast_hpc-2.3.1/lib/
 REPAST_HPC_LIB=-lrepast_hpc-2.3.1
 
 COMP_FLAGS=-Wall -g
 
-procDimsX=2
-procDimsY=2
-NUM_PROCS=4
+procDimsX=5
+procDimsY=5
+NUM_PROCS=25
