@@ -105,7 +105,6 @@ void Cell::interact(
                 // virus is already in the set then try find another As well
                 // as checking if the receptors/attatchment factors match
 
-
                 for (std::vector<Particle*>::iterator it = agents.begin();
                      it != agents.end(); it++) {
                     // Check the particle returned is a virus
@@ -117,7 +116,7 @@ void Cell::interact(
                         setNextState(Infected);
                         std::vector<int> loc;
                         partDiscSpace->getLocation(p->getId(), loc);
-                        //std::cout << loc[0] << " " << loc[1] << std::endl;
+                        // std::cout << loc[0] << " " << loc[1] << std::endl;
                         break;
                     }
                 }
@@ -146,6 +145,34 @@ void Cell::interact(
         }
 
         case Infected: {
+            {
+                std::vector<int>
+                    pLoc;  // location in the particle coordinate system
+                {
+                    repast::Point<int> p(loc[0], loc[1]);
+                    pLoc = spaceTrans.cellToPartDisc(p).coords();
+                }
+
+                repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
+
+                std::vector<Particle*> agents;
+                gridQ.query(pLoc, spaceTrans.cellSize() / 2.01, true, agents);
+
+                int innateCount = 0;
+
+                for (std::vector<Particle*>::iterator it = agents.begin();
+                     it != agents.end(); it++) {
+                    if ((*it)->getAgentType() == InnateImmuneType) {
+                        innateCount++;
+                    }
+                }
+
+                if (rand->nextDouble() < INNATE_KILL_CELL_PROB * innateCount) {
+                    setNextState(Empty);
+                    break;
+                }
+            }
+
             if (rand->nextDouble() < CELL_CHANCE_TO_SPAWN_VIRUS) {
                 for (int i = 0; i < CELL_VIRUS_SPAWN_COUNT; i++) {
                     add->push_back(std::tuple<repast::Point<double>, AgentType>(
