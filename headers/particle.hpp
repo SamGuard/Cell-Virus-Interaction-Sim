@@ -5,7 +5,7 @@
 
 #include "agentbase.hpp"
 #include "cell.hpp"
-#include "constants.hpp"
+#include "globals.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/SharedContext.h"
 #include "repast_hpc/SharedContinuousSpace.h"

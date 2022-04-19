@@ -1,7 +1,7 @@
 #include <vector>
 
 #include "cell.hpp"
-#include "constants.hpp"
+#include "globals.hpp"
 #include "particle.hpp"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/TDataSource.h"
@@ -18,8 +18,8 @@ class HumanResponse : public repast::TDataSource<double> {
         area =
             simSize * simSize / repast::RepastProcess::instance()->worldSize();
         double r = repast::Random::instance()->nextDouble();
-        tickToFindCure = AVG_TICKS_TO_FIND_ANTIBODY +
-                         DEV_TICKS_TO_FIND_ANTIBODY * (r * r - 0.5);
+        tickToFindCure = AVG_TIME_TO_FIND_ANTIBODY +
+                         DEV_TIME_TO_FIND_ANTIBODY * (r * r - 0.5);
         threatLevel = 0;
     }
 

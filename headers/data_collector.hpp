@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "cell.hpp"
-#include "constants.hpp"
+#include "globals.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/SVDataSet.h"
 #include "repast_hpc/TDataSource.h"

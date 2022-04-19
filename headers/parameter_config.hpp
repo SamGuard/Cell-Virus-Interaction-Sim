@@ -7,6 +7,7 @@ class ParameterConfig {
    public:
     ParameterConfig();
     ParameterConfig(repast::Properties* props);
+    double scaleProb(double p, double time);
 };
 
 #endif

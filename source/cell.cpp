@@ -1,9 +1,10 @@
 #include "cell.hpp"
 
-#include "constants.hpp"
+#include "globals.hpp"
 #include "particle.hpp"
 #include "repast_hpc/Schedule.h"
 #include "repast_hpc/VN2DGridQuery.h"
+#include "repast_hpc/Moore2DGridQuery.h"
 
 void Cell::interact(
     repast::SharedContext<Cell>* cellContext,
@@ -12,7 +13,7 @@ void Cell::interact(
     repast::SharedDiscreteSpace<Particle, repast::StrictBorders,
                                 repast::SimpleAdder<Particle>>* partDiscSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
-    std::set<Particle*>* remove, int &removeInfectedCellCount) {
+    std::set<Particle*>* remove, int& removeInfectedCellCount) {
     hasStateChanged = false;
     repast::Random* rand = repast::Random::instance();
     double currentTick =
@@ -89,8 +90,9 @@ void Cell::interact(
                     }
                 }
 
-                if (rand->nextDouble() >
-                    pow(1 - CELL_INFECT_NEIGH_CELL_PROB, infectedCellCount)) {
+                if (infectedCellCount != 0 &&
+                    rand->nextDouble() > pow(1.0 - CELL_INFECT_NEIGH_CELL_PROB,
+                                             infectedCellCount)) {
                     setNextState(Infected);
                     return;
                 }
@@ -98,10 +100,10 @@ void Cell::interact(
 
             // See if there are viruses and/or interferons in the nearby area
             {
-                repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
+                repast::Moore2DGridQuery<Particle> gridQ(partDiscSpace);
 
                 std::vector<Particle*> agents;
-                gridQ.query(pLoc, spaceTrans.cellSize() / 2.01, true, agents);
+                gridQ.query(pLoc, spaceTrans.cellSize() / 2.0, true, agents);
 
                 int virusCount = 0;
                 int ifnCount = 0;
@@ -121,10 +123,11 @@ void Cell::interact(
                     }
                 }
 
-                if ((getState() == Healthy ||
+                if (true ||
+                    (getState() == Healthy ||
                      rand->nextDouble() > CELL_BYSTANDER_INFECT_SKIP_PROB) &&
-                    rand->nextDouble() >
-                        pow(1 - VIRUS_INFECT_PROB, virusCount)) {
+                        rand->nextDouble() >
+                            pow(1.0 - VIRUS_INFECT_PROB, virusCount)) {
                     // A virus cannot infect two cells at once so if the chosen
                     // virus is already in the set then try find another As well
                     // as checking if the receptors/attatchment factors match
@@ -138,16 +141,17 @@ void Cell::interact(
                             remove->find(p) == remove->end()) {
                             remove->insert(p);
                             setNextState(Infected);
-                            std::vector<int> loc;
-                            partDiscSpace->getLocation(p->getId(), loc);
+                            // std::vector<int> loc;
+                            // partDiscSpace->getLocation(p->getId(), loc);
                             // std::cout << loc[0] << " " << loc[1] <<
                             // std::endl;
                             break;
                         }
                     }
                 }
+
                 if (rand->nextDouble() >
-                    pow(1 - CELL_TO_BYSTANDER_PROB, ifnCount)) {
+                    pow(1.0 - CELL_TO_BYSTANDER_PROB, ifnCount)) {
                     bool canFind = false;
 
                     for (std::vector<Particle*>::iterator it = agents.begin();
@@ -178,10 +182,10 @@ void Cell::interact(
                     pLoc = spaceTrans.cellToPartDisc(p).coords();
                 }
 
-                repast::VN2DGridQuery<Particle> gridQ(partDiscSpace);
+                repast::Moore2DGridQuery<Particle> gridQ(partDiscSpace);
 
                 std::vector<Particle*> agents;
-                gridQ.query(pLoc, spaceTrans.cellSize() / 2.01, true, agents);
+                gridQ.query(pLoc, spaceTrans.cellSize() / 2.0, true, agents);
 
                 int innateCount = 0;
 
@@ -192,7 +196,8 @@ void Cell::interact(
                     }
                 }
 
-                if (rand->nextDouble() > pow(1 - INNATE_KILL_CELL_PROB, innateCount)) {
+                if (rand->nextDouble() >
+                    pow(1.0 - INNATE_KILL_CELL_PROB, innateCount)) {
                     setNextState(Empty);
                     removeInfectedCellCount++;
                     return;
@@ -201,8 +206,8 @@ void Cell::interact(
 
             {
                 // See if the cell dies and releases viruses
-                if (rand->nextDouble() < CELL_CHANCE_TO_SPAWN_VIRUS) {
-                    for (int i = 0; i < CELL_VIRUS_SPAWN_COUNT; i++) {
+                if (rand->nextDouble() < CELL_PROB_TO_SPAWN_VIRUS) {
+                    for (int i = 0; i < CELL_VIRUS_SPAWN_NUMBER; i++) {
                         add->push_back(
                             std::tuple<repast::Point<double>, AgentType>(
                                 spaceTrans.cellToPart(loc), VirusType));

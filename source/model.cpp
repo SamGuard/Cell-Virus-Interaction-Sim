@@ -10,7 +10,7 @@
 #include <tuple>
 #include <vector>
 
-#include "constants.hpp"
+#include "globals.hpp"
 #include "parameter_config.hpp"
 #include "repast_hpc/AgentRequest.h"
 #include "repast_hpc/GridComponents.h"
@@ -25,7 +25,8 @@
 #include "repast_hpc/TDataSource.h"
 
 unsigned long int particleIdCount;
-double SIM_SCALE;
+double SIM_PHYS_SCALE;
+double SIM_TIME_SCALE;
 
 SpaceTranslator spaceTrans;
 
@@ -46,10 +47,16 @@ Model::Model(std::string propsFile, int argc, char** argv,
     // Define simulation parameters
     lifetime = stoi(props->getProperty("LIFETIME"));
     virusCount = stoi(props->getProperty("VIRUS_COUNT"));
+    
+    // Physical scale definition
     double areaSize =
         stod(props->getProperty("SIM_SIZE"));  // Size of the area to simulate
     double simSize = 1000;                     // Size of area in the simulation
-    SIM_SCALE = simSize / areaSize;
+    SIM_PHYS_SCALE = simSize / areaSize;
+    
+    // Time scale definition
+    SIM_TIME_SCALE = std::stod(props->getProperty("TIME_PER_TICK"));
+
     double densityOfCells = stod(props->getProperty("DENSITY_OF_CELLS"));
 
     paramConfig = ParameterConfig(props);
@@ -114,7 +121,7 @@ void Model::initDataLogging() {
     rank = repast::RepastProcess::instance()->rank();
 
     // file to log agent positions and state to
-    if(VIS_DATA_OUTPUT){
+    if (VIS_DATA_OUTPUT) {
         char* fileOutputName = (char*)malloc(128 * sizeof(char));
         sprintf(fileOutputName, "output/sim_%d.dat", rank);
         simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
@@ -335,22 +342,19 @@ void Model::interact() {
     // Synchronise Cells
     spaces.cellDisc->balance();
     repast::RepastProcess::instance()
-        ->synchronizeAgentStatus<Cell, CellPackage,
-                                 CellPackageProvider,
+        ->synchronizeAgentStatus<Cell, CellPackage, CellPackageProvider,
                                  CellPackageReceiver>(
             *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
 
     repast::RepastProcess::instance()
-        ->synchronizeProjectionInfo<Cell, CellPackage,
-                                    CellPackageProvider,
+        ->synchronizeProjectionInfo<Cell, CellPackage, CellPackageProvider,
                                     CellPackageReceiver>(
             *contexts.cell, *comms.cellProv, *comms.cellRec, *comms.cellRec);
 
     repast::RepastProcess::instance()
         ->synchronizeAgentStates<CellPackage, CellPackageProvider,
                                  CellPackageReceiver>(*comms.cellProv,
-                                                          *comms.cellRec);
-                                                          
+                                                      *comms.cellRec);
 
     std::vector<std::tuple<repast::Point<double>, AgentType>> partToAdd;
     std::set<Particle*> partToRemove;
@@ -409,7 +413,8 @@ void Model::interact() {
                 removeVirusCount++;
             }
         }
-        human.response(innateCount, removeVirusCount + removeInfectedCellCount, &partToAdd);
+        human.response(innateCount, removeVirusCount + removeInfectedCellCount,
+                       &partToAdd);
     }
 
     removeParticles(partToRemove);
@@ -538,7 +543,7 @@ void Model::removeParticles(std::set<Particle*>& v) {
 }
 
 void Model::collectParticleData() {
-    if(!VIS_DATA_OUTPUT) return;
+    if (!VIS_DATA_OUTPUT) return;
     //  Array of tuples
     //  Tuple is id, start rank, is in this proc, x, y and state
     std::vector<std::tuple<repast::AgentId, double, double, int>> out;
@@ -586,7 +591,7 @@ void Model::collectParticleData() {
 }
 
 void Model::collectCellData() {
-    if(!VIS_DATA_OUTPUT) return;
+    if (!VIS_DATA_OUTPUT) return;
     //  Array of tuples
     //  Tuple is id and agent state
     std::vector<std::tuple<repast::AgentId, int>> out;

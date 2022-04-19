@@ -6,25 +6,25 @@ build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/pa
 build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o ./objects/parameter_config.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
 
-./objects/parameter_config.o: ./headers/constants.hpp ./source/parameter_config.cpp
+./objects/parameter_config.o: ./headers/globals.hpp ./source/parameter_config.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/parameter_config.cpp -o ./objects/parameter_config.o $(COMP_FLAGS)	
 
-./objects/data_collector.o: ./headers/constants.hpp ./source/data_collector.cpp
+./objects/data_collector.o: ./headers/globals.hpp ./source/data_collector.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/data_collector.cpp -o ./objects/data_collector.o $(COMP_FLAGS)
 
-./objects/cell.o: ./headers/agentbase.hpp ./headers/constants.hpp ./headers/cell.hpp ./source/cell.cpp
+./objects/cell.o: ./headers/agentbase.hpp ./headers/globals.hpp ./headers/cell.hpp ./source/cell.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o $(COMP_FLAGS)
 
-./objects/particle.o: ./headers/constants.hpp ./headers/agentbase.hpp ./headers/particle.hpp ./source/particle.cpp
+./objects/particle.o: ./headers/globals.hpp ./headers/agentbase.hpp ./headers/particle.hpp ./source/particle.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/particle.cpp -o ./objects/particle.o $(COMP_FLAGS)
 
-./objects/communicators.o: ./headers/constants.hpp ./headers/particle.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
+./objects/communicators.o: ./headers/globals.hpp ./headers/particle.hpp ./headers/cell.hpp ./headers/communicators.hpp ./source/communicators.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o $(COMP_FLAGS)
 
-./objects/model.o: ./headers/constants.hpp ./headers/parameter_config.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/human_response.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
+./objects/model.o: ./headers/globals.hpp ./headers/parameter_config.hpp ./headers/model.hpp ./headers/communicators.hpp ./headers/data_collector.hpp ./headers/human_response.hpp ./headers/cell.hpp ./headers/model.hpp ./source/model.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/model.cpp -o ./objects/model.o $(COMP_FLAGS)
 
-./objects/main.o: ./headers/constants.hpp ./headers/model.hpp ./source/main.cpp 
+./objects/main.o: ./headers/globals.hpp ./headers/model.hpp ./source/main.cpp 
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/main.cpp -o ./objects/main.o $(COMP_FLAGS)
 
 ./data_visualiser/vis_main.cpp:

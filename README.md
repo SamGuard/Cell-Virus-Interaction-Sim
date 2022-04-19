@@ -5,17 +5,16 @@ Current Time Worked: \
 # Todo List
 
 ## Development
-- Implement time scaling
-- Implement code that runs batches of tests
-- See if there are any other cells to add in
 - Change cell params
 - Change human params
+- Implement code that runs batches of tests
 
 
 ## Write-up
 - Just gotta do it really
 - Sensitivity and other analysis of the ABM
 - Change state variable names
+- Update model section to include more about params
 
 ## Data collection
 - Find data on Influenza A that can be used to compare to the results from your simulation

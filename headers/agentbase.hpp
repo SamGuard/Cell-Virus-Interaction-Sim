@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "constants.hpp"
+#include "globals.hpp"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/Point.h"
 #include "repast_hpc/SharedContext.h"
