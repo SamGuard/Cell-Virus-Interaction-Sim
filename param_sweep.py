@@ -7,8 +7,8 @@ from typing import Dict
 import time
 import itertools
 
-PROCS_DIM_X = 2
-PROCS_DIM_Y = 2
+PROCS_DIM_X = 5
+PROCS_DIM_Y = 5
 NUM_PROCS = PROCS_DIM_X * PROCS_DIM_Y
 MAX_BATCHES = 4
 
@@ -141,15 +141,18 @@ def main():
             p[pSweeps[i]["var"]] = it[i]
         p["BATCH_NUM"] = num
         print("Stared proc", num)
-        procs.append(run(p))
+        #procs.append(run(p))
+        run(p).wait()
         del p
-    
+
+        '''
         while(len(procs) >= MAX_BATCHES):
             for i in range(len(procs)):
                 if(procs[i].poll() != None):
                     procs[i] = None
 
             procs = list(filter(lambda x: x != None, procs))
+        '''
         num += 1
         
 main()
