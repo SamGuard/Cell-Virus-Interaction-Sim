@@ -145,7 +145,7 @@ void Antibody::interact(
         if (a->getAgentType() == VirusType && isLocal(a->getId()) &&
             repast::Random::instance()->nextDouble() < ANTIBODY_KILL_PROB &&
             remove->find(a) == remove->end()) {
-            // Remove the virus and itselfF
+            // Remove the virus and itself
             remove->insert(a);
             if (remove->find(this) == remove->end()) {
                 remove->insert(this);

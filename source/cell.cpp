@@ -2,9 +2,9 @@
 
 #include "globals.hpp"
 #include "particle.hpp"
+#include "repast_hpc/Moore2DGridQuery.h"
 #include "repast_hpc/Schedule.h"
 #include "repast_hpc/VN2DGridQuery.h"
-#include "repast_hpc/Moore2DGridQuery.h"
 
 void Cell::interact(
     repast::SharedContext<Cell>* cellContext,
@@ -123,11 +123,10 @@ void Cell::interact(
                     }
                 }
 
-                if (true ||
-                    (getState() == Healthy ||
+                if ((getState() == Healthy ||
                      rand->nextDouble() > CELL_BYSTANDER_INFECT_SKIP_PROB) &&
-                        rand->nextDouble() >
-                            pow(1.0 - VIRUS_INFECT_PROB, virusCount)) {
+                    rand->nextDouble() >
+                        pow(1.0 - VIRUS_INFECT_PROB, virusCount)) {
                     // A virus cannot infect two cells at once so if the chosen
                     // virus is already in the set then try find another As well
                     // as checking if the receptors/attatchment factors match
@@ -152,7 +151,6 @@ void Cell::interact(
 
                 if (rand->nextDouble() >
                     pow(1.0 - CELL_TO_BYSTANDER_PROB, ifnCount)) {
-                    bool canFind = false;
 
                     for (std::vector<Particle*>::iterator it = agents.begin();
                          it != agents.end(); it++) {
@@ -161,7 +159,6 @@ void Cell::interact(
                         if (p->getAgentType() == InterferonType &&
                             isLocal(p->getId()) &&
                             remove->find(p) == remove->end()) {
-                            canFind = true;
                             remove->insert(p);
                             setNextState(Bystander);
                             break;

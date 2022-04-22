@@ -20,14 +20,15 @@ enum AgentType {
 
 extern double SIM_PHYS_SCALE; // Physical Scale
 extern double SIM_TIME_SCALE; // Time scale
+extern int BATCH_NUM; // For file names
 
 // Variables needed everywhere
 extern unsigned long int particleIdCount;
 
-// Parameters
 extern bool
     VIS_DATA_OUTPUT;  // Whether or not to track agents positions and states
 
+// Parameters
 // Cell
 extern double CELL_DEATH_LENGTH;  // How long a dead cell will stay dead before
                                   // it is cleared

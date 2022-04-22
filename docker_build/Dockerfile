@@ -12,7 +12,7 @@ RUN ./install.sh netcdf
 RUN ./install.sh boost
 RUN ./install.sh rhpc
 ENV LD_LIBRARY_PATH=/root/sfw/repast_hpc-2.3.1/lib/:/root/sfw/boost-1_61_0/lib/:$LD_LIBRARY_PATH
-RUN yes | apt install git libsfml-dev
+RUN yes | apt install git libsfml-dev python3
 WORKDIR /root/
 RUN git clone https://github.com/SamGuard/Cell-Virus-Interaction-Sim.git
 WORKDIR /root/Cell-Virus-Interaction-Sim/

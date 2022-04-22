@@ -27,6 +27,7 @@
 unsigned long int particleIdCount;
 double SIM_PHYS_SCALE;
 double SIM_TIME_SCALE;
+int BATCH_NUM;
 
 SpaceTranslator spaceTrans;
 
@@ -47,6 +48,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
     // Define simulation parameters
     lifetime = stoi(props->getProperty("LIFETIME"));
     virusCount = stoi(props->getProperty("VIRUS_COUNT"));
+    BATCH_NUM = stoi(props->getProperty("BATCH_NUM"));
     
     // Physical scale definition
     double areaSize =
@@ -123,15 +125,17 @@ void Model::initDataLogging() {
     // file to log agent positions and state to
     if (VIS_DATA_OUTPUT) {
         char* fileOutputName = (char*)malloc(128 * sizeof(char));
-        sprintf(fileOutputName, "output/sim_%d.dat", rank);
+        sprintf(fileOutputName, "output/sim_%d_%d.dat", BATCH_NUM, rank);
         simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
     }
 
     dataCol = DataCollector(&simData, &simDataFile);
 
     // Create the data set builder
+    char* totalsOutputName = (char*)malloc(128*sizeof(char));
+    sprintf(totalsOutputName, "output/agent_totals_data_%d.csv", BATCH_NUM);
     repast::SVDataSetBuilder builder = repast::SVDataSetBuilder(
-        "./output/agent_total_data.csv", ",",
+        totalsOutputName, ",",
         repast::RepastProcess::instance()->getScheduleRunner().schedule());
 
     AgentTotals<Particle>*virus, *ifn, *innate, *antiB;
