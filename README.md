@@ -5,9 +5,6 @@ Current Time Worked: \
 # Todo List
 
 ## Development
-- Change cell params
-- Change human params
-- Implement code that runs batches of tests
 
 
 ## Write-up

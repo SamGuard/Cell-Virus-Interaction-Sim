@@ -31,11 +31,14 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
     VIS_DATA_OUTPUT = std::stoi(props->getProperty("VIS_DATA_OUTPUT")) == 1;
 
     CELL_DEATH_LENGTH = std::stod(props->getProperty("CELL_DEATH_LENGTH"));
-    CELL_DIVIDE_PROB = std::stod(props->getProperty("CELL_DIVIDE_PROB"));
+    CELL_DIVIDE_PROB =
+        SIM_TIME_SCALE / std::stod(props->getProperty("CELL_DIVIDE_TIME"));
     CELL_BYSTANDER_DEATH_PROB =
-        std::stod(props->getProperty("CELL_BYSTANDER_DEATH_PROB"));
+        SIM_TIME_SCALE /
+        std::stod(props->getProperty("CELL_BYSTANDER_DEATH_TIME"));
     CELL_REVERT_BYSTANDER_PROB =
-        std::stod(props->getProperty("CELL_REVERT_BYSTANDER_PROB"));
+        SIM_TIME_SCALE /
+        std::stod(props->getProperty("CELL_REVERT_BYSTANDER_TIME"));
     CELL_BYSTANDER_INFECT_SKIP_PROB =
         std::stod(props->getProperty("CELL_BYSTANDER_INFECT_SKIP_PROB"));
     VIRUS_INFECT_PROB = std::stod(props->getProperty("VIRUS_INFECT_PROB"));
@@ -97,6 +100,8 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
     VIRUS_LIFETIME /= SIM_TIME_SCALE;
     INNATE_LIFETIME /= SIM_TIME_SCALE;
     ANTIBODY_LIFETIME /= SIM_TIME_SCALE;
+    AVG_TIME_TO_FIND_ANTIBODY /= SIM_TIME_SCALE;
+    DEV_TIME_TO_FIND_ANTIBODY /= SIM_PHYS_SCALE;
 
     // Converts x per min to x per tick
     PROB_PER_UNIT_TO_SPAWN_INNATE *= SIM_TIME_SCALE;
