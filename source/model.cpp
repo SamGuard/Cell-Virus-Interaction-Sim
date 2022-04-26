@@ -49,13 +49,13 @@ Model::Model(std::string propsFile, int argc, char** argv,
     lifetime = stoi(props->getProperty("LIFETIME"));
     virusCount = stoi(props->getProperty("VIRUS_COUNT"));
     BATCH_NUM = stoi(props->getProperty("BATCH_NUM"));
-    
+
     // Physical scale definition
     double areaSize =
         stod(props->getProperty("SIM_SIZE"));  // Size of the area to simulate
     double simSize = 1000;                     // Size of area in the simulation
     SIM_PHYS_SCALE = simSize / areaSize;
-    
+
     // Time scale definition
     SIM_TIME_SCALE = std::stod(props->getProperty("TIME_PER_TICK"));
 
@@ -132,7 +132,7 @@ void Model::initDataLogging() {
     dataCol = DataCollector(&simData, &simDataFile);
 
     // Create the data set builder
-    char* totalsOutputName = (char*)malloc(128*sizeof(char));
+    char* totalsOutputName = (char*)malloc(128 * sizeof(char));
     sprintf(totalsOutputName, "output/agent_totals_data_%d.csv", BATCH_NUM);
     repast::SVDataSetBuilder builder = repast::SVDataSetBuilder(
         totalsOutputName, ",",
@@ -149,6 +149,10 @@ void Model::initDataLogging() {
     cellInfected = new AgentTotals<Cell>(contexts.cell, CellType, Infected);
     cellDead = new AgentTotals<Cell>(contexts.cell, CellType, Dead);
 
+    TrueTime* time = new TrueTime();
+
+    builder.addDataSource(
+        createSVDataSource("Time", time, std::plus<double>()));
     builder.addDataSource(
         createSVDataSource("Total_Viruses", virus, std::plus<int>()));
     builder.addDataSource(createSVDataSource("Total_Cells_Healthy", cellHealthy,

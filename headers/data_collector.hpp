@@ -9,6 +9,7 @@
 
 #include "cell.hpp"
 #include "globals.hpp"
+#include "math.h"
 #include "repast_hpc/AgentId.h"
 #include "repast_hpc/SVDataSet.h"
 #include "repast_hpc/TDataSource.h"
@@ -91,6 +92,15 @@ class AgentTotals<Cell> : public repast::TDataSource<int> {
             }
         }
         return count;
+    }
+};
+
+class TrueTime : public repast::TDataSource<double> {
+   public:
+    double getData() {
+        return (int)repast::RepastProcess::instance()
+                 ->getScheduleRunner()
+                 .currentTick() * SIM_TIME_SCALE/ 4.0;
     }
 };
 #endif
