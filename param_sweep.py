@@ -26,13 +26,13 @@ paramsBase = {
     # Cell
     "CELL_DEATH_LENGTH": 0,
     "CELL_DIVIDE_PROB": 0,
-    "CELL_BYSTANDER_DEATH_PROB": 0,
+    "CELL_BYSTANDER_DEATH_TIME": 0,
     "CELL_REVERT_BYSTANDER_PROB": 0,
     "CELL_BYSTANDER_INFECT_SKIP_PROB": 0,
     "CELL_TO_BYSTANDER_PROB": 0,
     "CELL_VIRUS_SPAWN_NUMBER": 0,
     "CELL_IFN_SPAWN_NUMBER": 0,
-    "CELL_PROB_TO_SPAWN_VIRUS": 0,
+    "CELL_TIME_TO_SPAWN_VIRUS": 0,
     "CELL_INFECT_NEIGH_CELL_PROB": 0,
 
     # Particles
@@ -93,10 +93,10 @@ def run(params: Dict):
     proc = subprocess.Popen(
         ["mpirun", "-n", str(NUM_PROCS), "./bin/main", "config.props", "model.props",
          "procDimsX="+str(PROCS_DIM_Y), "procDimsY="+str(PROCS_DIM_Y)] +
-        list(map(lambda x:  "{}={} ".format(x, params[x]), params.keys())),
-        start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        list(map(lambda x:  f"{x}={params[x]:.8f}", params.keys())),
+        start_new_session=False)
 
-    #proc.wait()
+    # proc.wait()
     #subprocess.run(["kill", str(proc.pid)])
     return proc
 
@@ -120,30 +120,29 @@ def getArgs():
 def main():
     params = loadBaseValues()
     pSweeps = getArgs()
-    print(pSweeps)
     valueRanges = []
-
     subprocess.run(["make", "del_data"])
 
     for x in pSweeps:
         valueRanges.append([])
-        for i in range(int(x["start"] / x["step"]), int(x["end"] / x["step"]), 1):
+        for i in range(round(x["start"] / x["step"]), round(x["end"] / x["step"]), 1):
             valueRanges[-1].append(i * x["step"])
 
     allIters = list(itertools.product(*valueRanges))
     procs = []
+    print(allIters)
 
     num = 0
     for it in allIters:
         p = params.copy()
-        
+
         for i in range(len(it)):
             p[pSweeps[i]["var"]] = it[i]
         p["BATCH_NUM"] = num
         print("Stared proc", num)
         procs.append(run(p))
         del p
-    
+
         while(len(procs) >= MAX_BATCHES):
             for i in range(len(procs)):
                 if(procs[i].poll() != None):
@@ -151,5 +150,12 @@ def main():
 
             procs = list(filter(lambda x: x != None, procs))
         num += 1
-        
+    while(len(procs) > 0):
+        for i in range(len(procs)):
+            if(procs[i].poll() != None):
+                procs[i] = None
+
+        procs = list(filter(lambda x: x != None, procs))
+
+
 main()
