@@ -35,6 +35,8 @@ Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
 
+    std::cout << "RANK " << repast::RepastProcess::instance()->rank() << std::endl;
+
     // Contexts
     contexts.part = new repast::SharedContext<Particle>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
