@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-const int NUM_PROCS = 4;
-const int NUM_CELLS = 10 * 10 * 2200.0;
+const int NUM_PROCS = 25;
+const int NUM_CELLS = 0.1*0.1*2200.0;
 const double SIM_EXTENT = 1000;
 const int MAX_LAYERS = 2;
 int WIDTH;
@@ -379,6 +379,7 @@ void mainLoop() {
             setStateOfAgent(payload, agents);
         } else if (command.compare("tick") == 0) {
             // Go to next file
+            std::cout << "tick " << cReader << std::endl;
             cReader = (cReader + 1) % NUM_PROCS;
             if (cReader == 0) {
                 draw(agents, img);
