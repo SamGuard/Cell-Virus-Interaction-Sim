@@ -35,8 +35,6 @@ Model::Model(std::string propsFile, int argc, char** argv,
              boost::mpi::communicator* comm) {
     props = new repast::Properties(propsFile, argc, argv, comm);
 
-    std::cout << "RANK " << repast::RepastProcess::instance()->rank() << std::endl;
-
     // Contexts
     contexts.part = new repast::SharedContext<Particle>(comm);
     contexts.cell = new repast::SharedContext<Cell>(comm);
@@ -128,7 +126,7 @@ void Model::initDataLogging() {
     if (VIS_DATA_OUTPUT) {
         std::cout << "Logging data for visualation..." << std::endl;
         char* fileOutputName = (char*)malloc(128 * sizeof(char));
-        sprintf(fileOutputName, "output/sim_%d_%d.dat", BATCH_NUM, rank);
+        sprintf(fileOutputName, "tmp/sim_%d_%d.dat", BATCH_NUM, rank);
         simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
     }
 
@@ -136,7 +134,7 @@ void Model::initDataLogging() {
 
     // Create the data set builder
     char* totalsOutputName = (char*)malloc(128 * sizeof(char));
-    sprintf(totalsOutputName, "output/agent_totals_data_%d.csv", BATCH_NUM);
+    sprintf(totalsOutputName, "tmp/agent_totals_data_%d.csv", BATCH_NUM);
     repast::SVDataSetBuilder builder = repast::SVDataSetBuilder(
         totalsOutputName, ",",
         repast::RepastProcess::instance()->getScheduleRunner().schedule());
