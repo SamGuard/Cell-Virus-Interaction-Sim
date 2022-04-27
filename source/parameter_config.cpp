@@ -104,8 +104,8 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
     DEV_TIME_TO_FIND_ANTIBODY /= SIM_PHYS_SCALE;
 
     // Converts x per min to x per tick
-    PROB_PER_UNIT_TO_SPAWN_INNATE *= SIM_TIME_SCALE;
-    PROB_PER_UNIT_TO_SPAWN_ANTIBODY *= SIM_TIME_SCALE;
+    PROB_PER_UNIT_TO_SPAWN_INNATE /= SIM_TIME_SCALE;
+    PROB_PER_UNIT_TO_SPAWN_ANTIBODY /= SIM_TIME_SCALE;
 
     // Probabilities
     CELL_DIVIDE_PROB = scaleProb(CELL_DIVIDE_PROB, SIM_TIME_SCALE);
