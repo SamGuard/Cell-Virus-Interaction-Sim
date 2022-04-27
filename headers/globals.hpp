@@ -130,7 +130,6 @@ class SpaceTranslator {
         cellPartScale.push_back(partExtent[1] / (double)cellExtent[1]);
 
         _cellSize = areaSize / cellExtent[0];
-        std::cout << _cellSize << std::endl;
     }
 
     inline double cellSize() { return _cellSize; }

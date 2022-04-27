@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-const int NUM_PROCS = 25;
+const int NUM_PROCS = 4;
 const int NUM_CELLS = 0.1*0.1*2200.0;
 const double SIM_EXTENT = 1000;
 const int MAX_LAYERS = 2;
