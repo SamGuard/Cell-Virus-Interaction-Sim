@@ -8,7 +8,7 @@
 #include <vector>
 
 const int NUM_PROCS = 4;
-const int NUM_CELLS = 0.1*0.1*2200.0;
+const int NUM_CELLS = 10 * 10 * 2200.0;
 const double SIM_EXTENT = 1000;
 const int MAX_LAYERS = 2;
 int WIDTH;
@@ -133,7 +133,7 @@ class Cell : public Agent {
     Cell(double x, double y, double size, sf::Color col, State state)
         : Agent(x, y, size, col, state) {
         layer = 0;
-        sf::Vector2f s(size, size);
+        sf::Vector2f s(ceil(size), ceil(size));
         shape = sf::RectangleShape(s);
         shape.setOutlineThickness(0);
     }
@@ -167,13 +167,13 @@ class Cell : public Agent {
         x0 = x;
         y0 = y;
         transformPoints(x0, y0);
-        shape.setPosition(x0 - size / 2, y0 - size / 2);
+        shape.setPosition(x0 - size / 2.0, y0 - size / 2.0);
         img->draw(shape);
     }
 };
 
 void openFiles(std::vector<std::ifstream *> &files) {
-    const char baseString[] = "../output/sim_%d.dat";
+    const char baseString[] = "../output/sim_0_%d.dat";
     char *buff = (char *)malloc(1024 * sizeof(char));
     for (int i = 0; i < NUM_PROCS; i++) {
         sprintf(buff, baseString, i);
@@ -240,7 +240,7 @@ void createAgent(std::string payload, std::map<std::string, Agent *> &agents) {
                 agent->update();
                 break;
             case InnateImmuneType:
-                agent = new Particle(0, 0, scale * 0.5, sf::Color(), Healthy,
+                agent = new Particle(0, 0, scale * 0.25, sf::Color(), Healthy,
                                      (AgentTypes)type);
                 agent->update();
                 break;
@@ -397,10 +397,10 @@ void mainLoop() {
 
 int main() {
     WIDTH = 600;
-    WIDTH = WIDTH + (NUM_CELLS - (WIDTH % NUM_CELLS));
+    // WIDTH = WIDTH + (NUM_CELLS - (WIDTH % NUM_CELLS));
     HEIGHT = WIDTH;
-    SCALE = WIDTH / SIM_EXTENT;
-    CELL_SIZE = WIDTH / NUM_CELLS;
+    SCALE = (double)WIDTH / SIM_EXTENT;
+    CELL_SIZE = (double)WIDTH / NUM_CELLS;
     mainLoop();
     return 0;
 }
