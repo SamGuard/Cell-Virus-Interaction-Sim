@@ -69,7 +69,7 @@ Model::Model(std::string propsFile, int argc, char** argv,
 
     {
         int worldSize = repast::RepastProcess::instance()->worldSize();
-        cellCount = areaSize * areaSize * densityOfCells;
+        cellCount = sqrt(areaSize * areaSize * densityOfCells);
         cellCount = cellCount + (worldSize - (cellCount % worldSize));
     }
 
@@ -186,7 +186,7 @@ void Model::init() {
 
     double spawnSizeX = spaces.partCont->dimensions().extents().getX(),
            spawnSizeY = spaces.partCont->dimensions().extents().getY();
-    if (repast::RepastProcess::instance()->rank() == 0) {
+    if (repast::RepastProcess::instance()->rank() == worldSize / 2) {
         particleIdCount = 0;
         for (int i = 0; i < virusCount; i++) {
             double offsetX = spawnOriginX + randNum->nextDouble() * spawnSizeX,
