@@ -124,6 +124,7 @@ void Model::initDataLogging() {
 
     // file to log agent positions and state to
     if (VIS_DATA_OUTPUT) {
+        std::cout << "Logging data for visualation..." << std::endl;
         char* fileOutputName = (char*)malloc(128 * sizeof(char));
         sprintf(fileOutputName, "output/sim_%d_%d.dat", BATCH_NUM, rank);
         simDataFile.open(fileOutputName, std::ios::out | std::ios::trunc);
