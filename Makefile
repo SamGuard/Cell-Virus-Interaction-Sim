@@ -3,9 +3,6 @@ include ./env
 build: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o ./objects/parameter_config.o
 	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS)
 
-build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./objects/particle.o ./objects/cell.o ./objects/data_collector.o ./objects/parameter_config.o
-	$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/main ./objects/* -Wall $(REPAST_HPC_LIB) $(BOOST_LIBS) $(COMP_FLAGS) -O3
-
 ./objects/parameter_config.o: ./headers/globals.hpp ./source/parameter_config.cpp
 	$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -c -I./headers/ ./source/parameter_config.cpp -o ./objects/parameter_config.o $(COMP_FLAGS)	
 
@@ -31,7 +28,7 @@ build_opt: ./objects/main.o ./objects/model.o ./objects/communicators.o ./object
 
 build_vis: ./data_visualiser/vis_main.hpp
 	cd ./data_visualiser \
-	&& g++ vis_main.cpp -o vis_main -lsfml-graphics -g -O3 -Wall -Wextra
+	&& g++ vis_main.cpp -o vis_main -lsfml-graphics -g -Ofast -Wall -Wextra
 
 del_data:
 	- rm ./output/*
