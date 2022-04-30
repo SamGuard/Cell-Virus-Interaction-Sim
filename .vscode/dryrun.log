@@ -1,5 +1,12 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory '/home/sam/projects/dissertation/Cell-Virus-Interaction-Sim'
-mpicxx -std=c++11  -L/home/sam/sfw/boost-1_61_0/lib/ -L/home/sam/sfw/repast_hpc-2.3.1/lib/ -o ./bin/main ./objects/* -Wall -lrepast_hpc-2.3.1 -lboost_mpi-mt -lboost_serialization-mt -lboost_system-mt -lboost_filesystem-mt -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/main.cpp -o ./objects/main.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/model.cpp -o ./objects/model.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/communicators.cpp -o ./objects/communicators.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/particle.cpp -o ./objects/particle.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/cell.cpp -o ./objects/cell.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/data_collector.cpp -o ./objects/data_collector.o -Wall -g -Ofast
+mpicxx -std=c++11   -isystem/root/sfw/boost-1_61_0/include/ -isystem/root/sfw/repast_hpc-2.3.1/include/ -c -I./headers/ ./source/parameter_config.cpp -o ./objects/parameter_config.o -Wall -g -Ofast	
+mpicxx -std=c++11  -L/root/sfw/boost-1_61_0/lib/ -L/root/sfw/repast_hpc-2.3.1/lib/ -o ./bin/main ./objects/* -Wall -lrepast_hpc-2.3.1 -lboost_mpi-mt -lboost_serialization-mt -lboost_system-mt -lboost_filesystem-mt -Wall -g -Ofast
 make: Leaving directory '/home/sam/projects/dissertation/Cell-Virus-Interaction-Sim'
  

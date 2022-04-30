@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Apr 27 22:32:32 2022
+# Make data base, printed on Sat Apr 30 11:15:09 2022
 
 # Variables
 
@@ -29,15 +31,15 @@ XDG_SESSION_TYPE = x11
 # environment
 VSCODE_LOG_NATIVE = false
 # makefile (from 'env', line 7)
-REPAST_HPC_INCLUDE = -isystem/home/sam/sfw/repast_hpc-2.3.1/include/
+REPAST_HPC_INCLUDE = -isystem/root/sfw/repast_hpc-2.3.1/include/
 # makefile (from 'env', line 4)
-BOOST_LIB_DIR = -L/home/sam/sfw/boost-1_61_0/lib/
+BOOST_LIB_DIR = -L/root/sfw/boost-1_61_0/lib/
 # environment
 NVM_INC = /home/sam/.nvm/versions/node/v14.4.0/include/node
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # makefile (from 'env', line 15)
-NUM_PROCS = 4
+NUM_PROCS = 25
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # environment
@@ -77,7 +79,7 @@ MANDATORY_PATH = /usr/share/gconf/ubuntu.mandatory.path
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/home/sam/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # makefile (from 'env', line 8)
-REPAST_HPC_LIB_DIR = -L/home/sam/sfw/repast_hpc-2.3.1/lib/
+REPAST_HPC_LIB_DIR = -L/root/sfw/repast_hpc-2.3.1/lib/
 # environment
 DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
@@ -103,7 +105,7 @@ XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GDK_PIXBUF_MODULE_FILE = /home/sam/snap/code/common/.cache/gdk-pixbuf-loaders.cache
 # makefile (from 'env', line 14)
-procDimsY = 2
+procDimsY = 5
 # environment
 SNAP = /snap/code/94
 # environment
@@ -185,7 +187,7 @@ GNOME_DESKTOP_SESSION_ID = this-is-deprecated
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # makefile (from 'env', line 13)
-procDimsX = 2
+procDimsX = 5
 # environment
 MAKELEVEL := 0
 # environment
@@ -205,7 +207,7 @@ SHLVL = 1
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-09381f37-b9cd-4520-be91-78393752caed.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-ef0c62c7-3c8a-47f8-bb89-49ce44fcecbb.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -261,11 +263,11 @@ SNAP_NAME = code
 # environment
 LC_ALL = C
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/34ba5ce3_f742_4b3e_ba23_483dd686dff3
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/e9cc1227_3862_45ad_a9c3_40517e45c567
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.5384
+GNOME_TERMINAL_SERVICE = :1.12263
 # default
 SUFFIXES := 
 # environment
@@ -273,12 +275,9 @@ SNAP_REEXEC =
 # environment
 CHROME_DESKTOP = code-url-handler.desktop
 # makefile (from 'env', line 3)
-BOOST_INCLUDE = -isystem/home/sam/sfw/boost-1_61_0/include/
+BOOST_INCLUDE = -isystem/root/sfw/boost-1_61_0/include/
 # environment
 WINDOWPATH = 2
- 
-make: *** No rule to make target 'all'.  Stop.
-
 # makefile (from 'env', line 11)
 COMP_FLAGS = -Wall -g -Ofast
 # default
@@ -290,8 +289,9 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 151846
+VSCODE_PID = 301851
 # variable set hash-table stats:
+ 
 # Load=139/1024=14%, Rehash=0, Collisions=15/166=9%
 
 # Pattern-specific Variable Values
@@ -300,9 +300,9 @@ VSCODE_PID = 151846
 
 # Directories
 
-# . (device 2050, inode 2628701): 22 files, no impossibilities.
+# . (device 2050, inode 2628701): 23 files, no impossibilities.
 
-# 22 files, no impossibilities in 1 directories.
+# 23 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -364,7 +364,7 @@ source/communicators.cpp:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-27 22:32:01.310743906
+#  Last modified 2022-04-28 12:45:44.767832869
 #  File has been updated.
 #  Successfully updated.
 
@@ -558,8 +558,7 @@ objects/model.o: headers/globals.hpp headers/parameter_config.hpp headers/model.
 # Not a target:
 env:
 #  Implicit rule search has been done.
- 
-#  Last modified 2022-04-27 22:31:28.678625424
+#  Last modified 2022-04-28 13:22:56.472646049
 #  File has been updated.
 #  Successfully updated.
 
@@ -571,12 +570,13 @@ env:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 61 / storage = 859 B / avg = 14 B
-# current buf: size = 8162 B / used = 859 B / count = 61 / avg = 14 B
+# strcache buffers: 1 (0) / strings = 62 / storage = 871 B / avg = 14 B
+# current buf: size = 8162 B / used = 871 B / count = 62 / avg = 14 B
 
-# strcache performance: lookups = 112 / hit rate = 45%
+ 
+# strcache performance: lookups = 113 / hit rate = 45%
 # hash-table stats:
-# Load=61/8192=1%, Rehash=0, Collisions=1/112=1%
-# Finished Make data base on Wed Apr 27 22:32:32 2022
+# Load=62/8192=1%, Rehash=0, Collisions=1/113=1%
+# Finished Make data base on Sat Apr 30 11:15:09 2022
 
  
