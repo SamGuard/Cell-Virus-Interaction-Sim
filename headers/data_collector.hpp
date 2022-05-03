@@ -99,8 +99,9 @@ class TrueTime : public repast::TDataSource<double> {
    public:
     double getData() {
         return (int)repast::RepastProcess::instance()
-                 ->getScheduleRunner()
-                 .currentTick() * SIM_TIME_SCALE/ 4.0;
+                   ->getScheduleRunner()
+                   .currentTick() *
+               SIM_TIME_SCALE / repast::RepastProcess::instance()->worldSize();
     }
 };
 #endif
