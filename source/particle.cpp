@@ -31,9 +31,12 @@ void Particle::interact(
     while (agentToPlay != agentsToPlay.end()) {}
     */
     // birthTick + lifetime
-    if (birthTick + VIRUS_LIFETIME < repast::RepastProcess::instance()
-                                         ->getScheduleRunner()
-                                         .currentTick() &&
+    if (birthTick + VIRUS_LIFETIME *
+                        (1 + 0.1 * (repast::Random::instance()->nextDouble() -
+                                    0.5)) <
+            repast::RepastProcess::instance()
+                ->getScheduleRunner()
+                .currentTick() &&
         remove->find(this) == remove->end()) {
         remove->insert(this);
     }
@@ -80,9 +83,12 @@ void InnateImmune::interact(
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
     repast::Random* rand = repast::Random::instance();
-    if (birthTick + INNATE_LIFETIME < repast::RepastProcess::instance()
-                                          ->getScheduleRunner()
-                                          .currentTick() &&
+    if (birthTick + INNATE_LIFETIME *
+                        (1 + 0.1 * (repast::Random::instance()->nextDouble() -
+                                    0.5)) <
+            repast::RepastProcess::instance()
+                ->getScheduleRunner()
+                .currentTick() &&
         remove->find(this) == remove->end() && isLocal(this->getId())) {
         remove->insert(this);
         return;
@@ -123,7 +129,9 @@ void Antibody::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
-    if (birthTick + ANTIBODY_LIFETIME <
+    if (birthTick +
+            ANTIBODY_LIFETIME *
+                (1 + 0.1 * (repast::Random::instance()->nextDouble() - 0.5)) <
         repast::RepastProcess::instance()->getScheduleRunner().currentTick()) {
         if (remove->find(this) == remove->end()) {
             remove->insert(this);

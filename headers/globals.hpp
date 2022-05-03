@@ -18,9 +18,9 @@ enum AgentType {
     AntibodyType
 };
 
-extern double SIM_PHYS_SCALE; // Physical Scale
-extern double SIM_TIME_SCALE; // Time scale
-extern int BATCH_NUM; // For file names
+extern double SIM_PHYS_SCALE;  // Physical Scale
+extern double SIM_TIME_SCALE;  // Time scale
+extern int BATCH_NUM;          // For file names
 
 // Variables needed everywhere
 extern unsigned long int particleIdCount;
@@ -44,21 +44,19 @@ extern double
                                       // will be skipped if the cell is a
                                       // bystander
 extern double VIRUS_INFECT_PROB;  // Base for the prob calculation that there
-                                     // is a chance that a cell can be infected
-                                     // by one of the nearby viruses
+                                  // is a chance that a cell can be infected
+                                  // by one of the nearby viruses
 extern double CELL_TO_BYSTANDER_PROB;  // For each IFN particle around the
 // cell this value will be raised to
 // the power of that value
-extern int
-    CELL_VIRUS_SPAWN_NUMBER;  // Amount of viruses to spawn from an infected cell
+extern int CELL_VIRUS_SPAWN_NUMBER;  // Amount of viruses to spawn from an
+                                     // infected cell
 extern int CELL_IFN_SPAWN_NUMBER;  // The amount of IFNs to add each tick from a
                                    // bystander cell
-extern double
-    CELL_PROB_TO_SPAWN_VIRUS;  // The chance each tick for a infected cell to
-                                 // die and release virons
-extern double
-    CELL_INFECT_NEIGH_CELL_PROB;  // Base of probability for spreading
-                                      // infections cell to cell
+extern double CELL_PROB_TO_SPAWN_VIRUS;  // The chance each tick for a infected
+                                         // cell to die and release virons
+extern double CELL_INFECT_NEIGH_CELL_PROB;  // Base of probability for spreading
+                                            // infections cell to cell
 
 // Particles
 extern double VIRUS_LIFETIME;
@@ -77,11 +75,11 @@ extern double IFN_SPEED;
 
 // Human response
 extern double AVG_TIME_TO_FIND_ANTIBODY;  // Time until the correct recpetor
-                                           // for the virus has been found
+                                          // for the virus has been found
 extern double
     DEV_TIME_TO_FIND_ANTIBODY;  // how much variance is there from the average
-extern double PROB_PER_UNIT_TO_SPAWN_INNATE;    // Probability that a new innate
-                                                // cell will be created per unit
+extern double PROB_PER_UNIT_TO_SPAWN_INNATE;  // Probability that a new innate
+// cell will be created per unit
 extern double PROB_PER_UNIT_TO_SPAWN_ANTIBODY;  // The probability that a new
                                                 // antibody will spawn per unit
 extern double THREAT_LEVEL_SMOOTHING;    // Changes how rapidly the threat level

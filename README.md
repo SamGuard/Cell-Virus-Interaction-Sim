@@ -13,26 +13,26 @@ Current Time Worked: \
 - Change state variable names
 - Finish design concepts
 - Review tec and lit section
+- More on the current state of the art
 - Conclusion
 - More referencing
 
 
 ## Data collection
-- Find data you are looking for
-- Run batches of tests to see what parameters work the best to imitate the virus
+- Get data on inflammed tissue
 - Compile data
 
 # Plan 
-## Monday
-- Finish data collection
-
 ## Tuesday
 - Write analysis
 - Do Senstivity analysis
 
 ## Wednesday
 - Finish design concepts
+- Do subprocesses
 - Conclusion
+- Further work
 
 ## Thursday
+- READ READ READ (make corrections)
 - More referencing
