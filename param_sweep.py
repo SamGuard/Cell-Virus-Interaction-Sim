@@ -94,7 +94,7 @@ def run(params: Dict):
         ["mpirun", "-n", str(NUM_PROCS), "./bin/main", "config.props", "model.props",
          "procDimsX="+str(PROCS_DIM_Y), "procDimsY="+str(PROCS_DIM_Y)] +
         list(map(lambda x:  f"{x}={params[x]:.8f}", params.keys())),
-        start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        start_new_session=False, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # proc.wait()
     #subprocess.run(["kill", str(proc.pid)])
@@ -130,7 +130,7 @@ def main():
 
     allIters = list(itertools.product(*valueRanges))
     procs = []
-
+    print(allIters)
     num = 0
     for it in allIters:
         p = params.copy()
