@@ -67,7 +67,7 @@ class HumanResponse : public repast::TDataSource<double> {
             if (floor(repast::RepastProcess::instance()
                           ->getScheduleRunner()
                           .currentTick()) == 1000) {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 100; i++) {
                     partToAdd->push_back(
                         std::tuple<repast::Point<double>, AgentType>(
                             repast::Point<double>(-1, -1), VirusType));
