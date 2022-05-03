@@ -94,7 +94,7 @@ def run(params: Dict):
         ["mpirun", "-n", str(NUM_PROCS), "./bin/main", "config.props", "model.props",
          "procDimsX="+str(PROCS_DIM_Y), "procDimsY="+str(PROCS_DIM_Y)] +
         list(map(lambda x:  f"{x}={params[x]:.8f}", params.keys())),
-        start_new_session=False)
+        start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # proc.wait()
     #subprocess.run(["kill", str(proc.pid)])
@@ -125,12 +125,11 @@ def main():
 
     for x in pSweeps:
         valueRanges.append([])
-        for i in range(round(x["start"] / x["step"]), round(x["end"] / x["step"]), 1):
+        for i in range(round(x["start"] / x["step"]), round(x["end"] / x["step"]) + 1, 1):
             valueRanges[-1].append(i * x["step"])
 
     allIters = list(itertools.product(*valueRanges))
     procs = []
-    print(allIters)
 
     num = 0
     for it in allIters:
@@ -147,13 +146,16 @@ def main():
             for i in range(len(procs)):
                 if(procs[i].poll() != None):
                     procs[i] = None
+                    print("Ended proc")
 
             procs = list(filter(lambda x: x != None, procs))
         num += 1
+
     while(len(procs) > 0):
         for i in range(len(procs)):
             if(procs[i].poll() != None):
                 procs[i] = None
+                print("Ended proc")
 
         procs = list(filter(lambda x: x != None, procs))
 
