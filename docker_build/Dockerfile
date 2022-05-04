@@ -11,6 +11,7 @@ RUN ./install.sh curl
 RUN ./install.sh mpich
 ENV PATH=/root/sfw/MPICH/bin:$PATH
 RUN ./install.sh netcdf
+RUN apt install bzip2
 RUN ./install.sh boost
 RUN ./install.sh rhpc
 ENV LD_LIBRARY_PATH=/root/sfw/repast_hpc-2.3.1/lib/:/root/sfw/boost-1_61_0/lib/:$LD_LIBRARY_PATH
