@@ -8,9 +8,9 @@ import time
 import itertools
 
 PROCS_DIM_X = 2
-PROCS_DIM_Y = 2
+PROCS_DIM_Y = 3
 NUM_PROCS = PROCS_DIM_X * PROCS_DIM_Y
-MAX_BATCHES = 6
+MAX_BATCHES = 1
 
 # Parameters
 paramsBase = {
