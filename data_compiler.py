@@ -1,7 +1,7 @@
 import csv
 from typing import List
 
-NUM_BATCHES = 2
+NUM_BATCHES = 11
 VIRUS_THRESHOLD = 1000
 
 
@@ -33,7 +33,7 @@ def getData(batchNum):
     print(maxInnate)
     print(timeToCure)
 
-    return [maxVirus[2], maxInnate[7], maxVirus[0], maxInnate[0], timeToCure[0]]
+    return [maxVirus[2], maxInnate[7], maxVirus[1], maxInnate[1], timeToCure[1]]
 
 
 def main():

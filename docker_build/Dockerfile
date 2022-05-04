@@ -1,7 +1,9 @@
 FROM ubuntu:latest
 RUN apt update
-RUN yes | apt install g++ gcc make zlib1g-dev
-COPY ./repast_hpc-2.3.1/ /root/repast_hpc-2.3.1/
+RUN yes | apt install g++ gcc make zlib1g-dev wget tar
+RUN wget https://github.com/Repast/repast.hpc/releases/download/v2.3.1/repast_hpc-2.3.1.tgz
+RUN tar -xzvf repast_hpc-2.3.1.tgz
+RUN cp -r repast_hpc-2.3.1 /root/
 WORKDIR /root/repast_hpc-2.3.1/MANUAL_INSTALL/
 RUN rm Makefile
 COPY Makefile .

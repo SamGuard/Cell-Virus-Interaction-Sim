@@ -23,11 +23,10 @@ Current Time Worked: \
 - Compile data
 
 # Plan 
-## Tuesday
-- Write analysis
-- Do Senstivity analysis
 
 ## Wednesday
+- Write analysis - 75%
+- Do Senstivity analysis 30%
 - Finish design concepts
 - Do subprocesses
 - Conclusion
