@@ -61,6 +61,7 @@ class HumanResponse : public repast::TDataSource<double> {
             }
         }
         
+        /* For reinfection
         {
             if (floor(repast::RepastProcess::instance()
                           ->getScheduleRunner()
@@ -72,7 +73,7 @@ class HumanResponse : public repast::TDataSource<double> {
                 }
             }
         }
-        
+        */
         
     }
     double getData() { return threatLevel; }
