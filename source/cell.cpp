@@ -20,15 +20,17 @@ void Cell::interact(
         repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
     std::vector<int> loc;
-    cellSpace->getLocation(id, loc);
+    cellSpace->getLocation(id, loc); // Get the cells location
     switch (getState()) {
         case Dead: {
+            // Don't do anything until some time has passed
             if (getDeathTick() + CELL_DEATH_LENGTH < currentTick) {
                 setNextState(Empty);
             }
             break;
         }
         case Empty: {
+            // See if the cell should be come healthy
             repast::VN2DGridQuery<Cell> gridQ(cellSpace);
 
             repast::Point<int> queryCent(loc);
@@ -107,7 +109,7 @@ void Cell::interact(
 
                 int virusCount = 0;
                 int ifnCount = 0;
-
+                // Count the number of types of particles in the area
                 for (std::vector<Particle*>::iterator it = agents.begin();
                      it != agents.end(); it++) {
                     if (!isLocal((*it)->getId())) continue;
@@ -122,7 +124,7 @@ void Cell::interact(
                             break;
                     }
                 }
-
+                // See if cell becomes infected
                 if ((getState() == Healthy ||
                      rand->nextDouble() > CELL_BYSTANDER_INFECT_SKIP_PROB) &&
                     rand->nextDouble() >
@@ -148,7 +150,8 @@ void Cell::interact(
                         }
                     }
                 }
-
+                
+                // See if cell becomes bystander
                 if (rand->nextDouble() >
                     pow(1.0 - CELL_TO_BYSTANDER_PROB, ifnCount)) {
 
@@ -185,7 +188,7 @@ void Cell::interact(
                 gridQ.query(pLoc, spaceTrans.cellSize() / 2.0, true, agents);
 
                 int innateCount = 0;
-
+                // Count innate cells in area
                 for (std::vector<Particle*>::iterator it = agents.begin();
                      it != agents.end(); it++) {
                     if ((*it)->getAgentType() == InnateImmuneType) {
@@ -193,6 +196,7 @@ void Cell::interact(
                     }
                 }
 
+                // See if this cell is killed by an innate immune cell
                 if (rand->nextDouble() >
                     pow(1.0 - INNATE_KILL_CELL_PROB, innateCount)) {
                     setNextState(Empty);

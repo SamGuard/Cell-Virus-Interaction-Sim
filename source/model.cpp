@@ -176,6 +176,7 @@ void Model::initDataLogging() {
 }
 
 void Model::init() {
+    // Initialise agents in the simulation
     rank = repast::RepastProcess::instance()->rank();
     worldSize = repast::RepastProcess::instance()->worldSize();
     repast::Random* randNum = repast::Random::instance();
@@ -187,6 +188,8 @@ void Model::init() {
 
     double spawnSizeX = spaces.partCont->dimensions().extents().getX(),
            spawnSizeY = spaces.partCont->dimensions().extents().getY();
+
+    // Add in viruses in random positions
     if (repast::RepastProcess::instance()->rank() == worldSize / 2) {
         particleIdCount = 0;
         for (int i = 0; i < virusCount; i++) {
@@ -196,6 +199,7 @@ void Model::init() {
         }
     }
 
+    // Add innate immune cells
     for (int i = 0; i < 1; i++) {
         double offsetX = spawnOriginX + randNum->nextDouble() * spawnSizeX,
                offsetY = spawnOriginY + randNum->nextDouble() * spawnSizeY;
@@ -208,7 +212,7 @@ void Model::init() {
 
         int extentX = (int)spaces.cellDisc->dimensions().extents().getX(),
             extentY = (int)spaces.cellDisc->dimensions().extents().getY();
-
+        // Add in static cells
         for (int x = 0; x < extentX; x++) {
             for (int y = 0; y < extentY; y++) {
                 repast::Point<int> pos =
@@ -306,7 +310,7 @@ void Model::initSchedule(repast::ScheduleRunner& runner) {
 }
 
 void Model::balanceAgents() {
-    // Particle
+    // Particle balance
     spaces.partDisc->balance();
     repast::RepastProcess::instance()
         ->synchronizeAgentStatus<Particle, ParticlePackage,
@@ -374,10 +378,12 @@ void Model::interact() {
             std::vector<Particle*> agents;
             contexts.part->selectAgents(repast::SharedContext<Particle>::LOCAL,
                                         agents);
+            // Call interact function of each particle
             for (std::vector<Particle*>::iterator it = agents.begin();
                  it != agents.end(); it++) {
                 Particle* p = *it;
                 switch (p->getAgentType()) {
+                    // Cast agents back to correct type
                     case InnateImmuneType: {
                         InnateImmune* newP = (InnateImmune*)p;
                         newP->interact(contexts.part, spaces.partDisc,
@@ -405,7 +411,7 @@ void Model::interact() {
     // Remove particles that have died of old age
     removeParticles(partToRemove);
 
-    // Cell
+    // Cell interaction
     int removeInfectedCellCount = 0;
     for (repast::SharedContext<Cell>::const_local_iterator it =
              contexts.cell->localBegin();
@@ -414,7 +420,8 @@ void Model::interact() {
                         &partToAdd, &partToRemove, removeInfectedCellCount);
     }
 
-    {
+    {   
+        // Count the number of viruses removed
         int removeVirusCount = 0;
         for (std::set<Particle*>::iterator it = partToRemove.begin();
              it != partToRemove.end(); it++) {
@@ -426,8 +433,10 @@ void Model::interact() {
                        &partToAdd);
     }
 
-    removeParticles(partToRemove);
 
+    // Remove all particles in list
+    removeParticles(partToRemove);
+    // Add all particles in list
     addParticles(partToAdd);
 
     // Set cells to their next state

@@ -50,6 +50,8 @@ class Particle : public AgentBase {
                   partContinSpace);
 };
 
+// Implementations of particles
+
 class Virus : public Particle {
    public:
     Virus(repast::AgentId id, Vector vel, double birthTick)

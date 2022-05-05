@@ -18,7 +18,7 @@ void Particle::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
-    // Inter-virus interaction, not in use (yet)
+    // Inter-virus interaction, not in use
     /*
     std::vector<Virus*> agentsToPlay;
     std::vector<int> agentLocDiscrete;
@@ -55,6 +55,7 @@ void Particle::move(
     repast::Point<double> origin = continSpace->bounds().origin();
     repast::Point<double> extent = continSpace->bounds().extents();
 
+    // Bounce off walls
     if (loc[0] <= origin.getX() || loc[0] >= extent.getX() + origin.getX()) {
         vel.x = -vel.x;
         loc[0] += vel.x;
@@ -83,6 +84,8 @@ void InnateImmune::interact(
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
     repast::Random* rand = repast::Random::instance();
+
+    // See if dead
     if (birthTick + INNATE_LIFETIME *
                         (1 + 0.1 * (repast::Random::instance()->nextDouble() -
                                     0.5)) <
@@ -103,6 +106,7 @@ void InnateImmune::interact(
     query.query(repast::Point<int>((int)loc[0], (int)loc[1]), INNATE_RANGE,
                 true, agents);
 
+    // See if inante immune cell can kill a virus
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;
@@ -129,6 +133,7 @@ void Antibody::interact(
         partContinSpace,
     std::vector<std::tuple<repast::Point<double>, AgentType>>* add,
     std::set<Particle*>* remove) {
+    // See if dead
     if (birthTick +
             ANTIBODY_LIFETIME *
                 (1 + 0.1 * (repast::Random::instance()->nextDouble() - 0.5)) <
@@ -146,7 +151,7 @@ void Antibody::interact(
     repast::Moore2DGridQuery<Particle> query(partDiscreteSpace);
     query.query(repast::Point<int>(loc[0], loc[1]), ANTIBODY_RANGE, true,
                 agents);
-    // See if theres a virus to "kill" nearby
+    // See if theres a virus to kill nearby
     for (std::vector<Particle*>::iterator it = agents.begin();
          it != agents.end(); it++) {
         Particle* a = *it;

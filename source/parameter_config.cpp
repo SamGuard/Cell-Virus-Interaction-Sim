@@ -3,6 +3,9 @@
 #include "globals.hpp"
 
 // Descriptions of each parameter are in constants.hpp
+
+// Declare the global variables here so they can be defined
+
 bool VIS_DATA_OUTPUT;
 
 // Cell
@@ -23,11 +26,14 @@ double AVG_TIME_TO_FIND_ANTIBODY, DEV_TIME_TO_FIND_ANTIBODY,
     PROB_PER_UNIT_TO_SPAWN_INNATE, THREAT_LEVEL_SENSITIVITY,
     THREAT_LEVEL_SMOOTHING, PROB_PER_UNIT_TO_SPAWN_ANTIBODY;
 
+
+// Scales probabilities with time as described in the report
 double ParameterConfig::scaleProb(double p, double time) {
     return p == 1.0 ? 1.0 : 1.0 - pow(1.0 - p, time);
 }
 
 ParameterConfig::ParameterConfig(repast::Properties *props) {
+    // Define all parameters using data from the file
     VIS_DATA_OUTPUT = std::stoi(props->getProperty("VIS_DATA_OUTPUT")) == 1;
 
     CELL_DEATH_LENGTH = std::stod(props->getProperty("CELL_DEATH_LENGTH"));
@@ -84,6 +90,7 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
 
     // Scale any units
     // Physical
+
     // Speeds
     VIRUS_SPEED *= SIM_PHYS_SCALE * SIM_TIME_SCALE;
     IFN_SPEED *= SIM_PHYS_SCALE * SIM_TIME_SCALE;
@@ -121,7 +128,7 @@ ParameterConfig::ParameterConfig(repast::Properties *props) {
         scaleProb(CELL_PROB_TO_SPAWN_VIRUS, SIM_TIME_SCALE);
     CELL_INFECT_NEIGH_CELL_PROB =
         scaleProb(CELL_INFECT_NEIGH_CELL_PROB, SIM_TIME_SCALE);
-    // std::cout << CELL_INFECT_NEIGH_CELL_PROB << std::endl;
+    
     INNATE_KILL_VIRUS_PROB = scaleProb(INNATE_KILL_VIRUS_PROB, SIM_TIME_SCALE);
     INNATE_KILL_CELL_PROB = scaleProb(INNATE_KILL_CELL_PROB, SIM_TIME_SCALE);
     ANTIBODY_KILL_PROB = scaleProb(ANTIBODY_KILL_PROB, SIM_TIME_SCALE);

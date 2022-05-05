@@ -13,7 +13,7 @@ class Cell : public AgentBase {
     double deathTick;
 
    public:
-    CellState nextState;
+    CellState nextState; // The state that will be taken on in the next tick
     bool hasStateChanged;  // Only output setstate if the state has changed
 
     Cell() : AgentBase() {
@@ -36,6 +36,7 @@ class Cell : public AgentBase {
         this->hasStateChanged = hasStateChanged;
     }
 
+    // Used to update data across processes
     void set(repast::AgentId id, CellState state, CellState nextState,
              bool hasStateChanged, double deathTick, int receptorType,
              std::set<int> attFactors) {
@@ -55,6 +56,7 @@ class Cell : public AgentBase {
                              ->getScheduleRunner()
                              .currentTick());
         } else if (state == Empty) {
+            // Reset the death timer
             setDeathTick(-1);
         }
 
@@ -66,6 +68,7 @@ class Cell : public AgentBase {
     double getDeathTick() { return deathTick; }
     void setDeathTick(double tick) { deathTick = tick; }
 
+    // Called every tick to let the cell interact with other agents
     void interact(
         repast::SharedContext<Cell>* cellContext,
         repast::SharedDiscreteSpace<Cell, repast::StrictBorders,

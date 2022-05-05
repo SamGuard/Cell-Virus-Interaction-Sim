@@ -3,6 +3,7 @@
 
 
 int main(int argc, char** argv){
+	// Initialise the model and begin
 	std::time_t startTime = std::time(NULL);
 
   std::string configFile = argv[1]; // The name of the configuration file is Arg 1

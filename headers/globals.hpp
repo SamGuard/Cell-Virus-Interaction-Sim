@@ -96,10 +96,12 @@ struct Vector {
     Vector() : x(0), y(0) {}
 };
 
+// Is the agent local to this process
 inline bool isLocal(repast::AgentId id) {
     return id.currentRank() == repast::RepastProcess::instance()->rank();
 }
 
+// This translates coordinates between spaces
 class SpaceTranslator {
     std::vector<double> cellPartOffset;
     std::vector<double> cellPartScale;

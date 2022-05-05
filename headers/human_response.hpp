@@ -8,10 +8,10 @@
 
 class HumanResponse : public repast::TDataSource<double> {
    public:
-    double threatLevel;
-    double tickToFindCure;
-    bool cureFound;
-    double area;
+    double threatLevel; // How much threat this area is in
+    double tickToFindCure; // What tick to find the cure on
+    bool cureFound; // Can antibodies be released
+    double area; // Total area this agent is responsible for
     HumanResponse() {}
     HumanResponse(double simSize) {
         cureFound = false;
@@ -23,6 +23,7 @@ class HumanResponse : public repast::TDataSource<double> {
         threatLevel = 0;
     }
 
+    // Called every tick and adds agents to the simulation
     void response(
         int innateCellCount, int removeVirusCount,
         std::vector<std::tuple<repast::Point<double>, AgentType>>* partToAdd) {
@@ -61,7 +62,7 @@ class HumanResponse : public repast::TDataSource<double> {
             }
         }
         
-        /* For reinfection
+        /* For reinfection simulation
         {
             if (floor(repast::RepastProcess::instance()
                           ->getScheduleRunner()

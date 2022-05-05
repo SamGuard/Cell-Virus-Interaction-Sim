@@ -14,7 +14,7 @@
 #include "repast_hpc/SVDataSet.h"
 #include "repast_hpc/TDataSource.h"
 
-/* Data Collection */
+// Used to write visual data to files
 class DataCollector {
    private:
     std::stringstream *data;
@@ -41,6 +41,7 @@ class DataCollector {
     }
 };
 
+// This class tracks particle counts
 template <class T>
 class AgentTotals : public repast::TDataSource<int> {
    private:
@@ -66,6 +67,7 @@ class AgentTotals : public repast::TDataSource<int> {
     }
 };
 
+// This class tracks cell type counts
 template <>
 class AgentTotals<Cell> : public repast::TDataSource<int> {
    private:
@@ -95,6 +97,7 @@ class AgentTotals<Cell> : public repast::TDataSource<int> {
     }
 };
 
+// Output time in minutes instead of ticks
 class TrueTime : public repast::TDataSource<double> {
    public:
     double getData() {

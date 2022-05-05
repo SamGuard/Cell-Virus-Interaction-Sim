@@ -16,6 +16,7 @@
 #include "parameter_config.hpp"
 #include "particle.hpp"
 
+// Organises contexts, spaces and communicators
 struct AgentContexts {
     repast::SharedContext<Particle>* part;
     repast::SharedContext<Cell>* cell;
@@ -67,19 +68,23 @@ class Model {
     void initDataLogging();
     void init();
     void initSchedule(repast::ScheduleRunner& runner);
-    void balanceAgents();
+    void balanceAgents(); // Balance agents between processes
 
-    void addParticle(repast::Point<double> loc, AgentType t);
-    void addParticle(AgentType t);
+    void addParticle(repast::Point<double> loc, AgentType t); // Add a single particle
+    void addParticle(AgentType t); // Add a particle in a random place
+    // Add list of particle
     void addParticles(
         std::vector<std::tuple<repast::Point<double>, AgentType>>& p);
-    void removeParticle(Particle* p);
-    void removeParticles(std::set<Particle*>& p);
+    void removeParticle(Particle* p); // Remove a particle
+    void removeParticles(std::set<Particle*>& p); // Remove list of particles
 
-    void move();
-    void interact();
+    void move(); // Move all agents
+    void interact(); // Let agents interact
+    // Collects visual data
     void collectParticleData();
     void collectCellData();
+
+    // Outputs tick to file and terminal
     void outputTick();
     void printTick();
     void printAgentCounters();

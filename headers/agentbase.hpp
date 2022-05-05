@@ -48,6 +48,7 @@ class AgentBase {
 
     void setAgentType(AgentType agentType) { this->agentType = agentType; }
 
+    // Used for updating agents across processes
     void set(repast::AgentId id, AgentType type, Vector vel, int birthTick,
              int receptorType, std::set<int> attFactors) {
         this->id = id;
