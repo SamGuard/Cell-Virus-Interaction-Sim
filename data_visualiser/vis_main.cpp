@@ -8,7 +8,7 @@
 #include <vector>
 
 const int NUM_PROCS = 4;
-const int NUM_CELLS = 10 * 10 * 2200.0;
+const int NUM_CELLS = 5 * 5 * 2200.0;
 const double SIM_EXTENT = 1000;
 const int MAX_LAYERS = 2;
 int WIDTH;
